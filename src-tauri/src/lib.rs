@@ -5,6 +5,7 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 mod auth;
 mod event_log;
 mod helix;
+mod settings;
 
 #[tauri::command]
 fn set_ignore_cursor(window: tauri::WebviewWindow, ignore: bool) -> Result<(), String> {
@@ -29,9 +30,17 @@ pub fn run() {
             helix::eventsub_subscribe,
             event_log::append_event_log,
             event_log::flush_event_log,
+            settings::read_settings,
+            settings::write_settings,
+            settings::read_chat_history,
+            settings::write_chat_history,
         ])
         .setup(|app| {
-            let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+            let data_dir = dirs::home_dir()
+                .ok_or("could not resolve home directory")?
+                .join(".config")
+                .join("streamer");
+            std::fs::create_dir_all(&data_dir).map_err(|e| e.to_string())?;
 
             // Application logging: stderr + daily rotating file
             let file_appender = tracing_appender::rolling::daily(&data_dir, "streamer.log");
@@ -47,6 +56,7 @@ pub fn run() {
             window.set_ignore_cursor_events(true)?;
 
             app.manage(Arc::new(auth::AuthState::new(data_dir.clone())));
+            app.manage(settings::SettingsState::new(data_dir.clone()));
 
             let log_dir = data_dir.join("logs");
             app.manage(event_log::EventLogState::new(log_dir));

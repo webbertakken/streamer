@@ -4,6 +4,7 @@ import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { getWidget } from "./widgets/registry";
 import { useOverlayStore } from "./stores/overlay";
 import { useTwitchStore } from "./stores/twitch";
+import { hydrate, hydrateChatHistory, startAutoSave } from "./stores/persistence";
 import { checkAuth } from "./twitch/auth";
 import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
 import { startFollowerPolling, stopFollowerPolling } from "./twitch/helix";
@@ -17,15 +18,23 @@ function App() {
   const editMode = useOverlayStore((s) => s.editMode);
   const toggleEditMode = useOverlayStore((s) => s.toggleEditMode);
   const seedIfNeeded = useOverlayStore((s) => s.seedIfNeeded);
+  const hydrated = useOverlayStore((s) => s.hydrated);
   const instances = useOverlayStore((s) => s.instances);
 
   const authenticated = useTwitchStore((s) => s.authenticated);
   const username = useTwitchStore((s) => s.username);
 
-  // Seed widgets and check auth on mount
+  // Hydrate persisted state, seed if first run, then start auto-save
   useEffect(() => {
-    seedIfNeeded();
-    checkAuth().catch(console.error);
+    hydrate()
+      .then(() => {
+        const { instances } = useOverlayStore.getState();
+        if (instances.length === 0) seedIfNeeded();
+        startAutoSave();
+        useOverlayStore.getState().setHydrated(true);
+        return checkAuth().then(() => hydrateChatHistory());
+      })
+      .catch(console.error);
     startFileLogger();
     return () => stopFileLogger();
   }, [seedIfNeeded]);
@@ -77,6 +86,7 @@ function App() {
     };
   }, [authenticated, username]);
 
+  if (!hydrated) return null;
   if (!overlayVisible) return null;
 
   return (

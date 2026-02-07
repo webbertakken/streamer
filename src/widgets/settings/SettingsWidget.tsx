@@ -176,22 +176,27 @@ function OptionsSection() {
 
 function WidgetPicker() {
   const addInstance = useOverlayStore((s) => s.addInstance);
+  const instances = useOverlayStore((s) => s.instances);
   const widgetTypes = getWidgets();
 
   return (
     <div className="space-y-2">
       <h3 className="text-white/70 text-xs font-medium">Add widgets</h3>
       <div className="flex flex-wrap gap-1.5">
-        {widgetTypes.map((def) => (
-          <button
-            key={def.id}
-            onClick={() => addInstance(def.id)}
-            className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1 rounded transition-colors"
-          >
-            <span>+</span>
-            <span>{def.name}</span>
-          </button>
-        ))}
+        {widgetTypes.map((def) => {
+          const disabled = !!def.singleton && instances.some((i) => i.typeId === def.id);
+          return (
+            <button
+              key={def.id}
+              onClick={() => addInstance(def.id)}
+              disabled={disabled}
+              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10"
+            >
+              <span>+</span>
+              <span>{def.name}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -202,7 +207,8 @@ export function SettingsWidget() {
   if (!editMode) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 w-72">
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      <div className="w-72 pointer-events-auto">
       <div className="h-full bg-black/60 rounded-lg backdrop-blur-sm p-4 space-y-4">
         <h2 className="text-white text-sm font-semibold">Settings</h2>
         <AuthSection />
@@ -212,6 +218,7 @@ export function SettingsWidget() {
         <OptionsSection />
         <hr className="border-white/10" />
         <WidgetPicker />
+      </div>
       </div>
     </div>
   );

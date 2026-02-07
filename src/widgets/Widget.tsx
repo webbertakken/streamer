@@ -9,27 +9,26 @@ interface WidgetProps {
 
 export function Widget({ instanceId, name, children }: WidgetProps) {
   const editMode = useOverlayStore((s) => s.editMode);
-  const widgetStates = useOverlayStore((s) => s.widgetStates);
-  const setWidgetState = useOverlayStore((s) => s.setWidgetState);
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
+  const updateInstance = useOverlayStore((s) => s.updateInstance);
   const removeInstance = useOverlayStore((s) => s.removeInstance);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number } | null>(null);
 
-  const state = widgetStates[instanceId];
-  if (!state) return null;
+  if (!instance) return null;
 
   const handleDragStart = (e: React.PointerEvent) => {
     if (!editMode) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: state.x, origY: state.y };
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: instance.x, origY: instance.y };
   };
 
   const handleDragMove = (e: React.PointerEvent) => {
     if (!dragRef.current) return;
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    setWidgetState(instanceId, { x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
+    updateInstance(instanceId, { x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
   };
 
   const handleDragEnd = () => {
@@ -41,14 +40,14 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
-    resizeRef.current = { startX: e.clientX, startY: e.clientY, origW: state.width, origH: state.height };
+    resizeRef.current = { startX: e.clientX, startY: e.clientY, origW: instance.width, origH: instance.height };
   };
 
   const handleResizeMove = (e: React.PointerEvent) => {
     if (!resizeRef.current) return;
     const dx = e.clientX - resizeRef.current.startX;
     const dy = e.clientY - resizeRef.current.startY;
-    setWidgetState(instanceId, {
+    updateInstance(instanceId, {
       width: Math.max(100, resizeRef.current.origW + dx),
       height: Math.max(50, resizeRef.current.origH + dy),
     });
@@ -66,12 +65,12 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
     [instanceId, removeInstance],
   );
 
-  if (!state.visible) return null;
+  if (!instance.visible) return null;
 
   return (
     <div
       className="absolute"
-      style={{ left: state.x, top: state.y, width: state.width, height: state.height }}
+      style={{ left: instance.x, top: instance.y, width: instance.width, height: instance.height }}
     >
       {editMode && (
         <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded pointer-events-none z-10">

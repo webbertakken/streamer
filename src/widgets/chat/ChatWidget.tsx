@@ -22,6 +22,22 @@ export function pushChatMessage(msg: ChatMessage) {
   listeners.forEach((fn) => fn());
 }
 
+export function getChatMessages(): ChatMessage[] {
+  return messages;
+}
+
+export function loadChatMessages(saved: ChatMessage[]): void {
+  messages.length = 0;
+  messages.push(...saved);
+  listeners.forEach((fn) => fn());
+}
+
+/** Subscribe to message changes. Returns an unsubscribe function. */
+export function subscribeChatMessages(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => { listeners.delete(fn); };
+}
+
 function useChatMessages(): ChatMessage[] {
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   useEffect(() => {
