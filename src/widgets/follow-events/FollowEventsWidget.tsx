@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useOverlayStore } from "../../stores/overlay";
 import { subscribe, type ChannelEvent } from "../../events/bus";
 
 interface FollowEntry {
@@ -49,15 +50,17 @@ function formatTime(ts: number): string {
 
 function FollowEventsContent() {
   const entries = useFollows();
+  const editMode = useOverlayStore((s) => s.editMode);
+  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
 
   if (entries.length === 0) {
-    return <p className="text-white/40 text-sm italic p-2">No follows yet</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No follows yet</p>;
   }
 
   return (
     <div className="h-full overflow-y-auto p-2 space-y-1 scrollbar-thin">
       {entries.map((f) => (
-        <div key={f.id} className="text-sm leading-snug">
+        <div key={f.id} className={`text-sm leading-snug ${lineBg}`}>
           <span className="text-white/40 text-xs mr-1">{formatTime(f.timestamp)}</span>
           <span className="text-green-400 font-medium">{f.username}</span>
           <span className="text-white/60"> followed</span>
@@ -70,7 +73,7 @@ function FollowEventsContent() {
 export function FollowEventsWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Follow events">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm">
+      <div className="h-full">
         <FollowEventsContent />
       </div>
     </Widget>

@@ -50,6 +50,7 @@ function usePresence(): string[] {
 
 function ChatPresenceContent() {
   const authenticated = useTwitchStore((s) => s.authenticated);
+  const editMode = useOverlayStore((s) => s.editMode);
   const threshold = useOverlayStore((s) => s.presenceThreshold);
   const users = usePresence();
   const overThreshold = users.length > threshold;
@@ -67,13 +68,15 @@ function ChatPresenceContent() {
     return () => stopTracking();
   }, [authenticated, overThreshold]);
 
+  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+
   if (!authenticated) {
-    return <p className="text-white/40 text-sm italic p-2">Log in to track chat presence</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>Log in to track chat presence</p>;
   }
 
   if (overThreshold) {
     return (
-      <p className="text-white/40 text-sm italic p-2">
+      <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>
         Chat presence is unavailable above {threshold} viewers
       </p>
     );
@@ -81,13 +84,13 @@ function ChatPresenceContent() {
 
   return (
     <div className="h-full overflow-y-auto p-2 scrollbar-thin">
-      <div className="text-white/60 text-xs mb-1">{users.length} in chat</div>
+      <div className={`text-white/60 text-xs mb-1 ${lineBg}`}>{users.length} in chat</div>
       {users.length === 0 ? (
-        <p className="text-white/40 text-sm italic">No viewers tracked</p>
+        <p className={`text-white/40 text-sm italic ${lineBg}`}>No viewers tracked</p>
       ) : (
         <div className="space-y-0.5">
           {users.map((u) => (
-            <div key={u} className="text-sm text-white/80">{u}</div>
+            <div key={u} className={`text-sm text-white/80 ${lineBg}`}>{u}</div>
           ))}
         </div>
       )}
@@ -98,7 +101,7 @@ function ChatPresenceContent() {
 export function ChatPresenceWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Chat presence">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm">
+      <div className="h-full">
         <ChatPresenceContent />
       </div>
     </Widget>

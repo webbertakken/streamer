@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useOverlayStore } from "../../stores/overlay";
 import { subscribe, type ChannelEvent, type ChannelEventType } from "../../events/bus";
 
 const MAX_EVENTS = 500;
@@ -101,20 +102,23 @@ function formatTime(ts: number): string {
 
 function EventLogContent() {
   const log = useEventLog();
+  const editMode = useOverlayStore((s) => s.editMode);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [log.length]);
 
+  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+
   if (log.length === 0) {
-    return <p className="text-white/40 text-sm italic p-2">No events yet</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No events yet</p>;
   }
 
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-0.5 scrollbar-thin">
       {log.map((entry) => (
-        <div key={entry.id} className="text-xs leading-snug flex items-start gap-1.5">
+        <div key={entry.id} className={`text-xs leading-snug flex items-start gap-1.5 ${lineBg}`}>
           <span className="text-white/30 shrink-0">{formatTime(entry.event.timestamp)}</span>
           <span
             className={`${badgeColours[entry.event.type]} text-white px-1 rounded text-[10px] uppercase shrink-0`}
@@ -131,7 +135,7 @@ function EventLogContent() {
 export function EventLogWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Event log">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm">
+      <div className="h-full">
         <EventLogContent />
       </div>
     </Widget>

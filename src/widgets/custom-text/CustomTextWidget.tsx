@@ -1,6 +1,6 @@
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
-import { create } from "zustand";
+import { useOverlayStore } from "../../stores/overlay";
 
 export interface CustomTextConfig {
   text: string;
@@ -10,24 +10,11 @@ export interface CustomTextConfig {
   textAlign: CanvasTextAlign;
 }
 
-interface CustomTextState {
-  config: CustomTextConfig;
-  setConfig: (config: Partial<CustomTextConfig>) => void;
-}
-
-export const useCustomText = create<CustomTextState>((set) => ({
-  config: {
-    text: "Welcome to the stream!",
-    fontSize: 24,
-    colour: "#ffffff",
-    fontFamily: "sans-serif",
-    textAlign: "center",
-  },
-  setConfig: (partial) => set((s) => ({ config: { ...s.config, ...partial } })),
-}));
-
-function CustomTextContent() {
-  const config = useCustomText((s) => s.config);
+function CustomTextContent({ instanceId }: { instanceId: string }) {
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
+  const editMode = useOverlayStore((s) => s.editMode);
+  const config = instance?.config as CustomTextConfig | undefined;
+  if (!config) return null;
 
   return (
     <div
@@ -39,7 +26,7 @@ function CustomTextContent() {
         textAlign: config.textAlign,
       }}
     >
-      {config.text}
+      <span className={editMode ? "" : "bg-black/60 rounded px-2 py-0.5"}>{config.text}</span>
     </div>
   );
 }
@@ -47,8 +34,8 @@ function CustomTextContent() {
 export function CustomTextWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Custom text">
-      <div className="h-full bg-black/30 rounded-lg backdrop-blur-sm">
-        <CustomTextContent />
+      <div className="h-full">
+        <CustomTextContent instanceId={instanceId} />
       </div>
     </Widget>
   );

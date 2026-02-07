@@ -202,6 +202,23 @@ function WidgetPicker() {
   );
 }
 
+function RestoreDefaults() {
+  const restoreDefaults = useOverlayStore((s) => s.restoreDefaults);
+
+  function handleRestore() {
+    restoreDefaults();
+  }
+
+  return (
+    <button
+      onClick={handleRestore}
+      className="w-full bg-red-600/60 hover:bg-red-600/80 text-white text-xs px-3 py-1.5 rounded transition-colors"
+    >
+      Restore default settings
+    </button>
+  );
+}
+
 export function SettingsWidget() {
   const editMode = useOverlayStore((s) => s.editMode);
   if (!editMode) return null;
@@ -218,6 +235,8 @@ export function SettingsWidget() {
         <OptionsSection />
         <hr className="border-white/10" />
         <WidgetPicker />
+        <hr className="border-white/10" />
+        <RestoreDefaults />
       </div>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { useRef, useEffect, useReducer, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useOverlayStore } from "../../stores/overlay";
 import { useTwitchStore } from "../../stores/twitch";
 import { sendChatMessage } from "../../twitch/irc";
 
@@ -49,19 +51,22 @@ function useChatMessages(): ChatMessage[] {
 
 function ChatContent() {
   const msgs = useChatMessages();
+  const editMode = useOverlayStore((s) => s.editMode);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs.length]);
 
+  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1 scrollbar-thin">
       {msgs.length === 0 && (
-        <p className="text-white/40 text-sm italic">No messages yet</p>
+        <p className={`text-white/40 text-sm italic ${lineBg}`}>No messages yet</p>
       )}
       {msgs.map((msg) => (
-        <div key={msg.id} className="text-sm leading-snug">
+        <div key={msg.id} className={`text-sm leading-snug ${lineBg}`}>
           <span className="font-bold" style={{ color: msg.colour }}>
             {msg.username}
           </span>
@@ -74,6 +79,7 @@ function ChatContent() {
 
 function ChatInput() {
   const [text, setText] = useState("");
+  const editMode = useOverlayStore((s) => s.editMode);
   const authenticated = useTwitchStore((s) => s.authenticated);
   const connected = useTwitchStore((s) => s.connected);
 
@@ -91,12 +97,22 @@ function ChatInput() {
     }
   }
 
+  function handleFocus() {
+    if (!editMode) invoke("set_ignore_cursor", { ignore: false }).catch(console.error);
+  }
+
+  function handleBlur() {
+    if (!editMode) invoke("set_ignore_cursor", { ignore: true }).catch(console.error);
+  }
+
   return (
     <input
       type="text"
       value={text}
       onChange={(e) => setText(e.target.value)}
       onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       disabled={disabled}
       placeholder={placeholder}
       className="w-full bg-white/10 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
@@ -104,16 +120,32 @@ function ChatInput() {
   );
 }
 
+function ChatInputContainer() {
+  const editMode = useOverlayStore((s) => s.editMode);
+
+  function handleMouseEnter() {
+    if (!editMode) invoke("set_ignore_cursor", { ignore: false }).catch(console.error);
+  }
+
+  function handleMouseLeave() {
+    if (!editMode) invoke("set_ignore_cursor", { ignore: true }).catch(console.error);
+  }
+
+  return (
+    <div className="p-2 pt-0" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <ChatInput />
+    </div>
+  );
+}
+
 export function ChatWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Chat">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm flex flex-col">
+      <div className="h-full flex flex-col">
         <div className="flex-1 min-h-0">
           <ChatContent />
         </div>
-        <div className="p-2 pt-0">
-          <ChatInput />
-        </div>
+        <ChatInputContainer />
       </div>
     </Widget>
   );

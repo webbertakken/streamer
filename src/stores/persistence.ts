@@ -1,7 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useOverlayStore, type WidgetInstance } from "./overlay";
 import { useTwitchStore } from "./twitch";
-import { useCustomText } from "../widgets/custom-text/CustomTextWidget";
 import { getWidget } from "../widgets/registry";
 import {
   type ChatMessage,
@@ -29,8 +28,9 @@ interface PersistedSettings {
   twitch?: {
     channel: string;
   };
+  /** Legacy: custom text config was stored globally before being moved to instance config */
   customText?: {
-    config: ReturnType<typeof useCustomText.getState>["config"];
+    config: Record<string, unknown>;
   };
 }
 
@@ -62,6 +62,16 @@ export async function hydrate(): Promise<void> {
         visible: old?.visible ?? true,
       };
     });
+
+    // Migrate legacy global customText config into custom-text instances that lack config
+    if (data.customText?.config) {
+      for (const inst of instances) {
+        if (inst.typeId === "custom-text" && !inst.config) {
+          inst.config = { ...data.customText.config };
+        }
+      }
+    }
+
     useOverlayStore.setState({
       instances,
       fileLogging: data.overlay.fileLogging,
@@ -71,10 +81,6 @@ export async function hydrate(): Promise<void> {
 
   if (data.twitch) {
     useTwitchStore.setState({ channel: data.twitch.channel });
-  }
-
-  if (data.customText) {
-    useCustomText.setState({ config: data.customText.config });
   }
 }
 
@@ -93,7 +99,6 @@ export async function hydrateChatHistory(): Promise<void> {
 function gatherState(): PersistedSettings {
   const overlay = useOverlayStore.getState();
   const twitch = useTwitchStore.getState();
-  const customText = useCustomText.getState();
 
   return {
     overlay: {
@@ -102,7 +107,6 @@ function gatherState(): PersistedSettings {
       presenceThreshold: overlay.presenceThreshold,
     },
     twitch: { channel: twitch.channel },
-    customText: { config: customText.config },
   };
 }
 
@@ -133,6 +137,5 @@ function scheduleChatSave(): void {
 export function startAutoSave(): void {
   useOverlayStore.subscribe(scheduleSave);
   useTwitchStore.subscribe(scheduleSave);
-  useCustomText.subscribe(scheduleSave);
   subscribeChatMessages(scheduleChatSave);
 }

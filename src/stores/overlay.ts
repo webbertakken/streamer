@@ -9,6 +9,7 @@ export interface WidgetInstance {
   width: number;
   height: number;
   visible: boolean;
+  config?: Record<string, unknown>;
 }
 
 interface OverlayStore {
@@ -27,6 +28,7 @@ interface OverlayStore {
   toggleFileLogging: () => void;
   presenceThreshold: number;
   setPresenceThreshold: (threshold: number) => void;
+  restoreDefaults: () => void;
 }
 
 /** Generate the next instance ID for a given type (e.g. "chat-1", "chat-2") */
@@ -40,11 +42,17 @@ function nextInstanceId(typeId: string, instances: WidgetInstance[]): string {
   return `${typeId}-${max + 1}`;
 }
 
-/** Create initial instances — just the chat widget for a fresh install */
+/** Create initial instances for a fresh install */
 function seedInstances(): WidgetInstance[] {
-  const def = getWidget("chat");
-  if (!def) return [];
-  return [{ instanceId: "chat-1", typeId: "chat", ...def.defaults, visible: true }];
+  const seeds = ["chat", "viewer-count", "chat-presence", "custom-text"] as const;
+  return seeds.flatMap((typeId) => {
+    const def = getWidget(typeId);
+    if (!def) return [];
+    const config = typeId === "custom-text"
+      ? { ...def.defaultConfig, text: "Press \"Ctrl + Shift + I\" for overlay Edit-mode." }
+      : def.defaultConfig ? { ...def.defaultConfig } : undefined;
+    return [{ instanceId: `${typeId}-1`, typeId, ...def.defaults, visible: true, config }];
+  });
 }
 
 let seeded = false;
@@ -67,8 +75,9 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
     if (!def) return;
     if (def.singleton && get().instances.some((i) => i.typeId === typeId)) return;
     const instanceId = nextInstanceId(typeId, get().instances);
+    const config = def.defaultConfig ? { ...def.defaultConfig } : undefined;
     set((s) => ({
-      instances: [...s.instances, { instanceId, typeId, ...def.defaults, visible: true }],
+      instances: [...s.instances, { instanceId, typeId, ...def.defaults, visible: true, config }],
     }));
   },
   removeInstance: (instanceId) =>
@@ -85,4 +94,5 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
   toggleFileLogging: () => set((s) => ({ fileLogging: !s.fileLogging })),
   presenceThreshold: 1000,
   setPresenceThreshold: (threshold) => set({ presenceThreshold: threshold }),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, presenceThreshold: 1000 }),
 }));

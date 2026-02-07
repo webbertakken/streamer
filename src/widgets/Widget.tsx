@@ -98,7 +98,7 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
           />
         </div>
       )}
-      <div className="w-full h-full overflow-hidden">{children}</div>
+      <div className={`w-full h-full overflow-hidden ${editMode ? "bg-black/50 rounded-lg backdrop-blur-sm" : ""}`}>{children}</div>
     </div>
   );
 }

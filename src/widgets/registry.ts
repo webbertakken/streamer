@@ -22,6 +22,8 @@ export interface WidgetDefinition {
   defaults: WidgetDefaults;
   /** When true, only one instance of this widget type can exist */
   singleton?: boolean;
+  /** Default config for new instances of this widget type */
+  defaultConfig?: Record<string, unknown>;
 }
 
 const widgets = new Map<string, WidgetDefinition>();
@@ -55,7 +57,7 @@ registerWidget({ id: "chat", name: "Chat", component: ChatWidget, singleton: tru
 registerWidget({ id: "viewer-count", name: "Viewer count", component: ViewerCountWidget, singleton: true, defaults: { x: 1189, y: 27, width: 200, height: 60 } });
 registerWidget({ id: "follower-alerts", name: "Follower alerts", component: FollowerAlertWidget, singleton: true, defaults: { x: 1115, y: 997, width: 350, height: 120 } });
 registerWidget({ id: "event-feed", name: "Event feed", component: EventFeedWidget, singleton: true, defaults: { x: 2254, y: 896, width: 295, height: 268 } });
-registerWidget({ id: "custom-text", name: "Custom text", component: CustomTextWidget, defaults: { x: 1092, y: 90, width: 400, height: 80 } });
+registerWidget({ id: "custom-text", name: "Custom text", component: CustomTextWidget, defaults: { x: 1022, y: 93, width: 543, height: 50 }, defaultConfig: { text: "Welcome to the stream!", fontSize: 24, colour: "#ffffff", fontFamily: "sans-serif", textAlign: "center" } });
 registerWidget({ id: "chat-presence", name: "Chat presence", component: ChatPresenceWidget, singleton: true, defaults: { x: 2394, y: 52, width: 149, height: 566 } });
 registerWidget({ id: "follow-events", name: "Follow events", component: FollowEventsWidget, singleton: true, defaults: { x: 2253, y: 644, width: 294, height: 221 } });
 registerWidget({ id: "event-log", name: "Event log", component: EventLogWidget, singleton: true, defaults: { x: 5, y: 1164, width: 415, height: 215 } });
