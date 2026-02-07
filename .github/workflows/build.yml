@@ -38,6 +38,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install package manager (from package.json)
+        if: runner.os != 'Windows'
         run: |
           corepack enable
           corepack install
@@ -46,7 +47,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: yarn
+          cache: ${{ runner.os != 'Windows' && 'yarn' || '' }}
+
+      - name: Install package manager (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          corepack enable
+          corepack install
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
