@@ -1,6 +1,8 @@
-import { useRef, useEffect, useReducer } from "react";
+import { useRef, useEffect, useReducer, useState } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useTwitchStore } from "../../stores/twitch";
+import { sendChatMessage } from "../../twitch/irc";
 
 export interface ChatMessage {
   id: string;
@@ -54,11 +56,48 @@ function ChatContent() {
   );
 }
 
+function ChatInput() {
+  const [text, setText] = useState("");
+  const authenticated = useTwitchStore((s) => s.authenticated);
+  const connected = useTwitchStore((s) => s.connected);
+
+  const disabled = !authenticated || !connected;
+  const placeholder = !connected
+    ? "Not connected"
+    : !authenticated
+      ? "Log in to chat"
+      : "Send a message…";
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !disabled && text.trim()) {
+      sendChatMessage(text.trim());
+      setText("");
+    }
+  }
+
+  return (
+    <input
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
+      placeholder={placeholder}
+      className="w-full bg-white/10 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
+    />
+  );
+}
+
 export function ChatWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Chat">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm">
-        <ChatContent />
+      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm flex flex-col">
+        <div className="flex-1 min-h-0">
+          <ChatContent />
+        </div>
+        <div className="p-2 pt-0">
+          <ChatInput />
+        </div>
       </div>
     </Widget>
   );

@@ -45,9 +45,15 @@ import { ViewerCountWidget } from "./viewer-count/ViewerCountWidget";
 import { FollowerAlertWidget } from "./follower-alerts/FollowerAlertWidget";
 import { EventFeedWidget } from "./event-feed/EventFeedWidget";
 import { CustomTextWidget } from "./custom-text/CustomTextWidget";
+import { ChatPresenceWidget } from "./chat-presence/ChatPresenceWidget";
+import { FollowEventsWidget } from "./follow-events/FollowEventsWidget";
+import { EventLogWidget } from "./event-log/EventLogWidget";
 
 registerWidget({ id: "chat", name: "Chat", component: ChatWidget, defaults: { x: 20, y: 400, width: 320, height: 300 } });
 registerWidget({ id: "viewer-count", name: "Viewer count", component: ViewerCountWidget, defaults: { x: 20, y: 20, width: 200, height: 60 } });
 registerWidget({ id: "follower-alerts", name: "Follower alerts", component: FollowerAlertWidget, defaults: { x: 600, y: 100, width: 350, height: 120 } });
 registerWidget({ id: "event-feed", name: "Event feed", component: EventFeedWidget, defaults: { x: 20, y: 100, width: 320, height: 280 } });
 registerWidget({ id: "custom-text", name: "Custom text", component: CustomTextWidget, defaults: { x: 600, y: 500, width: 400, height: 80 } });
+registerWidget({ id: "chat-presence", name: "Chat presence", component: ChatPresenceWidget, defaults: { x: 1580, y: 20, width: 300, height: 400 } });
+registerWidget({ id: "follow-events", name: "Follow events", component: FollowEventsWidget, defaults: { x: 1580, y: 440, width: 300, height: 250 } });
+registerWidget({ id: "event-log", name: "Event log", component: EventLogWidget, defaults: { x: 600, y: 250, width: 500, height: 350 } });

@@ -3,6 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { getWidget } from "./widgets/registry";
 import { useOverlayStore } from "./stores/overlay";
+import { useTwitchStore } from "./stores/twitch";
+import { checkAuth } from "./twitch/auth";
+import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
+import { startFollowerPolling, stopFollowerPolling } from "./twitch/helix";
+import { startFileLogger, stopFileLogger } from "./events/file-logger";
 import { SettingsWidget } from "./widgets/settings/SettingsWidget";
 import "./App.css";
 
@@ -14,10 +19,18 @@ function App() {
   const seedIfNeeded = useOverlayStore((s) => s.seedIfNeeded);
   const instances = useOverlayStore((s) => s.instances);
 
+  const authenticated = useTwitchStore((s) => s.authenticated);
+  const username = useTwitchStore((s) => s.username);
+
+  // Seed widgets and check auth on mount
   useEffect(() => {
     seedIfNeeded();
+    checkAuth().catch(console.error);
+    startFileLogger();
+    return () => stopFileLogger();
   }, [seedIfNeeded]);
 
+  // Global shortcuts
   useEffect(() => {
     register("Ctrl+Shift+I", (e) => {
       if (e.state === "Pressed") toggleEditMode();
@@ -31,9 +44,38 @@ function App() {
     };
   }, [toggleEditMode, toggleOverlayVisible]);
 
+  // Cursor passthrough
   useEffect(() => {
     invoke("set_ignore_cursor", { ignore: !editMode }).catch(console.error);
   }, [editMode]);
+
+  // EventSub + follower polling when authenticated
+  useEffect(() => {
+    if (!authenticated || !username) {
+      disconnectEventSub();
+      stopFollowerPolling();
+      return;
+    }
+
+    // We need the broadcaster user ID for EventSub/Helix.
+    // Fetch it via the validate endpoint (which auth_status already called).
+    // For now, use helix_get to look up the user by login.
+    invoke("helix_get", { path: `/users?login=${username}` })
+      .then((raw: unknown) => {
+        const resp = JSON.parse(raw as string);
+        const userId: string | undefined = resp.data?.[0]?.id;
+        if (userId) {
+          connectEventSub(userId);
+          startFollowerPolling(userId);
+        }
+      })
+      .catch(console.error);
+
+    return () => {
+      disconnectEventSub();
+      stopFollowerPolling();
+    };
+  }, [authenticated, username]);
 
   if (!overlayVisible) return null;
 

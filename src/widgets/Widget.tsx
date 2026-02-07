@@ -74,23 +74,25 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
       style={{ left: state.x, top: state.y, width: state.width, height: state.height }}
     >
       {editMode && (
-        <div
-          className="absolute inset-0 border-2 border-dashed border-blue-400 rounded cursor-move z-10"
-          onPointerDown={handleDragStart}
-          onPointerMove={handleDragMove}
-          onPointerUp={handleDragEnd}
-        >
-          <span className="absolute -top-6 left-0 text-xs text-blue-300 bg-black/60 px-1 rounded">
-            {name}
-          </span>
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded pointer-events-none z-10">
+          <div
+            className="absolute -top-6 left-0 right-8 h-6 cursor-move pointer-events-auto"
+            onPointerDown={handleDragStart}
+            onPointerMove={handleDragMove}
+            onPointerUp={handleDragEnd}
+          >
+            <span className="text-xs text-blue-300 bg-black/60 px-1 rounded">
+              {name}
+            </span>
+          </div>
           <button
-            className="absolute -top-6 right-0 text-xs text-red-300 bg-black/60 px-1.5 rounded hover:bg-red-600/80 hover:text-white transition-colors"
+            className="absolute -top-6 right-0 text-xs text-red-300 bg-black/60 px-1.5 rounded hover:bg-red-600/80 hover:text-white transition-colors pointer-events-auto"
             onPointerDown={handleRemove}
           >
             ×
           </button>
           <div
-            className="absolute bottom-0 right-0 w-4 h-4 bg-blue-400 cursor-se-resize rounded-tl"
+            className="absolute bottom-0 right-0 w-4 h-4 bg-blue-400 cursor-se-resize rounded-tl pointer-events-auto"
             onPointerDown={handleResizeStart}
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeEnd}

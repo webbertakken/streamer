@@ -26,6 +26,10 @@ interface OverlayStore {
   widgetStates: Record<string, WidgetState>;
   setWidgetState: (id: string, state: Partial<WidgetState>) => void;
   getWidgetState: (id: string) => WidgetState;
+  fileLogging: boolean;
+  toggleFileLogging: () => void;
+  presenceThreshold: number;
+  setPresenceThreshold: (threshold: number) => void;
 }
 
 const defaultWidgetState: WidgetState = {
@@ -97,4 +101,8 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
       },
     })),
   getWidgetState: (id) => get().widgetStates[id] ?? { ...defaultWidgetState },
+  fileLogging: true,
+  toggleFileLogging: () => set((s) => ({ fileLogging: !s.fileLogging })),
+  presenceThreshold: 1000,
+  setPresenceThreshold: (threshold) => set({ presenceThreshold: threshold }),
 }));
