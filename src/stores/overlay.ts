@@ -20,6 +20,7 @@ interface OverlayStore {
   editMode: boolean;
   toggleEditMode: () => void;
   instances: WidgetInstance[];
+  seedIfNeeded: () => void;
   addInstance: (typeId: string) => void;
   removeInstance: (instanceId: string) => void;
   widgetStates: Record<string, WidgetState>;
@@ -53,14 +54,20 @@ function seedInstances(): { instances: WidgetInstance[]; widgetStates: Record<st
   return { instances, widgetStates };
 }
 
-const seed = seedInstances();
+let seeded = false;
 
 export const useOverlayStore = create<OverlayStore>((set, get) => ({
   overlayVisible: true,
   toggleOverlayVisible: () => set((s) => ({ overlayVisible: !s.overlayVisible })),
   editMode: false,
   toggleEditMode: () => set((s) => ({ editMode: !s.editMode })),
-  instances: seed.instances,
+  instances: [],
+  seedIfNeeded: () => {
+    if (seeded) return;
+    seeded = true;
+    const seed = seedInstances();
+    set({ instances: seed.instances, widgetStates: seed.widgetStates });
+  },
   addInstance: (typeId) => {
     const def = getWidget(typeId);
     if (!def) return;
@@ -81,7 +88,7 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
         widgetStates: rest,
       };
     }),
-  widgetStates: seed.widgetStates,
+  widgetStates: {},
   setWidgetState: (id, partial) =>
     set((s) => ({
       widgetStates: {

@@ -11,7 +11,12 @@ function App() {
   const toggleOverlayVisible = useOverlayStore((s) => s.toggleOverlayVisible);
   const editMode = useOverlayStore((s) => s.editMode);
   const toggleEditMode = useOverlayStore((s) => s.toggleEditMode);
+  const seedIfNeeded = useOverlayStore((s) => s.seedIfNeeded);
   const instances = useOverlayStore((s) => s.instances);
+
+  useEffect(() => {
+    seedIfNeeded();
+  }, [seedIfNeeded]);
 
   useEffect(() => {
     register("Ctrl+Shift+I", (e) => {
