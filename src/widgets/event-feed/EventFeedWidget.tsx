@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useOverlayStore } from "../../stores/overlay";
 
 export type EventType = "follow" | "sub" | "gift-sub" | "raid" | "bits";
 
@@ -49,19 +50,22 @@ function useStreamEvents(): StreamEvent[] {
 
 function EventFeedContent() {
   const evts = useStreamEvents();
+  const editMode = useOverlayStore((s) => s.editMode);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [evts.length]);
 
+  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1.5 scrollbar-thin">
       {evts.length === 0 && (
-        <p className="text-white/40 text-sm italic">No events yet</p>
+        <p className={`text-white/40 text-sm italic ${lineBg}`}>No events yet</p>
       )}
       {evts.map((evt) => (
-        <div key={evt.id} className="text-sm flex items-baseline gap-1.5">
+        <div key={evt.id} className={`text-sm flex items-baseline gap-1.5 ${lineBg}`}>
           <span className={`font-medium ${eventColours[evt.type]}`}>{eventLabels[evt.type]}</span>
           <span className="text-white font-bold">{evt.username}</span>
           {evt.detail && <span className="text-white/50">{evt.detail}</span>}
@@ -74,7 +78,7 @@ function EventFeedContent() {
 export function EventFeedWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Event feed">
-      <div className="h-full bg-black/50 rounded-lg backdrop-blur-sm">
+      <div className="h-full">
         <EventFeedContent />
       </div>
     </Widget>

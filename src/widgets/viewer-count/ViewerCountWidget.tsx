@@ -1,5 +1,6 @@
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { useOverlayStore } from "../../stores/overlay";
 import { create } from "zustand";
 
 interface ViewerCountState {
@@ -14,10 +15,11 @@ export const useViewerCount = create<ViewerCountState>((set) => ({
 
 function ViewerCountContent() {
   const count = useViewerCount((s) => s.count);
+  const editMode = useOverlayStore((s) => s.editMode);
 
   return (
-    <div className="h-full flex items-center justify-center bg-black/50 rounded-lg backdrop-blur-sm px-4">
-      <div className="flex items-center gap-2">
+    <div className="h-full flex items-center justify-center px-4">
+      <div className={`flex items-center gap-2 ${editMode ? "" : "bg-black/60 rounded px-2 py-0.5"}`}>
         <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
         <span className="text-white text-2xl font-bold tabular-nums">{count.toLocaleString()}</span>
         <span className="text-white/60 text-sm">viewers</span>

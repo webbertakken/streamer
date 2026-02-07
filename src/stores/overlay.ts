@@ -1,17 +1,15 @@
 import { create } from "zustand";
-import { getWidget, getWidgets } from "../widgets/registry";
+import { getWidget } from "../widgets/registry";
 
-export interface WidgetState {
+export interface WidgetInstance {
+  instanceId: string;
+  typeId: string;
   x: number;
   y: number;
   width: number;
   height: number;
   visible: boolean;
-}
-
-export interface WidgetInstance {
-  instanceId: string;
-  typeId: string;
+  config?: Record<string, unknown>;
 }
 
 interface OverlayStore {
@@ -19,75 +17,82 @@ interface OverlayStore {
   toggleOverlayVisible: () => void;
   editMode: boolean;
   toggleEditMode: () => void;
+  hydrated: boolean;
+  setHydrated: (hydrated: boolean) => void;
   instances: WidgetInstance[];
+  seedIfNeeded: () => void;
   addInstance: (typeId: string) => void;
   removeInstance: (instanceId: string) => void;
-  widgetStates: Record<string, WidgetState>;
-  setWidgetState: (id: string, state: Partial<WidgetState>) => void;
-  getWidgetState: (id: string) => WidgetState;
+  updateInstance: (instanceId: string, partial: Partial<WidgetInstance>) => void;
+  fileLogging: boolean;
+  toggleFileLogging: () => void;
+  presenceThreshold: number;
+  setPresenceThreshold: (threshold: number) => void;
+  restoreDefaults: () => void;
 }
-
-const defaultWidgetState: WidgetState = {
-  x: 0,
-  y: 0,
-  width: 300,
-  height: 200,
-  visible: true,
-};
 
 /** Generate the next instance ID for a given type (e.g. "chat-1", "chat-2") */
 function nextInstanceId(typeId: string, instances: WidgetInstance[]): string {
-  const existing = instances.filter((i) => i.typeId === typeId);
-  return `${typeId}-${existing.length + 1}`;
-}
-
-/** Create initial instances — one of each registered widget type */
-function seedInstances(): { instances: WidgetInstance[]; widgetStates: Record<string, WidgetState> } {
-  const instances: WidgetInstance[] = [];
-  const widgetStates: Record<string, WidgetState> = {};
-  for (const def of getWidgets()) {
-    const instanceId = `${def.id}-1`;
-    instances.push({ instanceId, typeId: def.id });
-    widgetStates[instanceId] = { ...def.defaults, visible: true };
+  let max = 0;
+  for (const inst of instances) {
+    if (inst.typeId !== typeId) continue;
+    const suffix = Number(inst.instanceId.slice(typeId.length + 1));
+    if (suffix > max) max = suffix;
   }
-  return { instances, widgetStates };
+  return `${typeId}-${max + 1}`;
 }
 
-const seed = seedInstances();
+/** Create initial instances for a fresh install */
+function seedInstances(): WidgetInstance[] {
+  const seeds = ["chat", "viewer-count", "chat-presence", "custom-text"] as const;
+  return seeds.flatMap((typeId) => {
+    const def = getWidget(typeId);
+    if (!def) return [];
+    const config = typeId === "custom-text"
+      ? { ...def.defaultConfig, text: "Press \"Ctrl + Shift + I\" for overlay Edit-mode." }
+      : def.defaultConfig ? { ...def.defaultConfig } : undefined;
+    return [{ instanceId: `${typeId}-1`, typeId, ...def.defaults, visible: true, config }];
+  });
+}
+
+let seeded = false;
 
 export const useOverlayStore = create<OverlayStore>((set, get) => ({
   overlayVisible: true,
   toggleOverlayVisible: () => set((s) => ({ overlayVisible: !s.overlayVisible })),
   editMode: false,
   toggleEditMode: () => set((s) => ({ editMode: !s.editMode })),
-  instances: seed.instances,
+  hydrated: false,
+  setHydrated: (hydrated) => set({ hydrated }),
+  instances: [],
+  seedIfNeeded: () => {
+    if (seeded) return;
+    seeded = true;
+    set({ instances: seedInstances() });
+  },
   addInstance: (typeId) => {
     const def = getWidget(typeId);
     if (!def) return;
+    if (def.singleton && get().instances.some((i) => i.typeId === typeId)) return;
     const instanceId = nextInstanceId(typeId, get().instances);
+    const config = def.defaultConfig ? { ...def.defaultConfig } : undefined;
     set((s) => ({
-      instances: [...s.instances, { instanceId, typeId }],
-      widgetStates: {
-        ...s.widgetStates,
-        [instanceId]: { ...def.defaults, visible: true },
-      },
+      instances: [...s.instances, { instanceId, typeId, ...def.defaults, visible: true, config }],
     }));
   },
   removeInstance: (instanceId) =>
-    set((s) => {
-      const { [instanceId]: _, ...rest } = s.widgetStates;
-      return {
-        instances: s.instances.filter((i) => i.instanceId !== instanceId),
-        widgetStates: rest,
-      };
-    }),
-  widgetStates: seed.widgetStates,
-  setWidgetState: (id, partial) =>
     set((s) => ({
-      widgetStates: {
-        ...s.widgetStates,
-        [id]: { ...get().getWidgetState(id), ...partial },
-      },
+      instances: s.instances.filter((i) => i.instanceId !== instanceId),
     })),
-  getWidgetState: (id) => get().widgetStates[id] ?? { ...defaultWidgetState },
+  updateInstance: (instanceId, partial) =>
+    set((s) => ({
+      instances: s.instances.map((i) =>
+        i.instanceId === instanceId ? { ...i, ...partial } : i,
+      ),
+    })),
+  fileLogging: true,
+  toggleFileLogging: () => set((s) => ({ fileLogging: !s.fileLogging })),
+  presenceThreshold: 1000,
+  setPresenceThreshold: (threshold) => set({ presenceThreshold: threshold }),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, presenceThreshold: 1000 }),
 }));
