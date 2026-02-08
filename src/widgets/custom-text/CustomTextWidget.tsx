@@ -26,7 +26,7 @@ function CustomTextContent({ instanceId }: { instanceId: string }) {
         textAlign: config.textAlign,
       }}
     >
-      <span className={editMode ? "" : "bg-black/60 rounded px-2 py-0.5"}>{config.text}</span>
+      <span className={`px-2 py-0.5 ${editMode ? "" : "bg-black/30 rounded"}`}>{config.text}</span>
     </div>
   );
 }

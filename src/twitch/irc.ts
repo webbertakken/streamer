@@ -64,6 +64,19 @@ function parseJoinPart(raw: string): { username: string; type: "join" | "part" }
   return null;
 }
 
+/** Extract the color tag value from an IRC tags string. */
+function parseColourTag(raw: string): string | null {
+  const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
+  if (tagEnd <= 0) return null;
+  const tags = raw.slice(1, tagEnd);
+  for (const pair of tags.split(";")) {
+    const eq = pair.indexOf("=");
+    if (eq === -1) continue;
+    if (pair.slice(0, eq) === "color" && pair.length > eq + 1) return pair.slice(eq + 1);
+  }
+  return null;
+}
+
 function handleMessage(event: MessageEvent<string>) {
   const lines = (event.data as string).split("\r\n").filter(Boolean);
   for (const line of lines) {
@@ -72,8 +85,18 @@ function handleMessage(event: MessageEvent<string>) {
       continue;
     }
 
+    // Capture user colour from GLOBALUSERSTATE or USERSTATE
+    if (line.includes(" GLOBALUSERSTATE") || line.includes(" USERSTATE ")) {
+      const colour = parseColourTag(line);
+      if (colour) useTwitchStore.getState().setUserColour(colour);
+      continue;
+    }
+
     const parsed = parsePRIVMSG(line);
     if (parsed) {
+      // Skip echoed own messages to avoid duplicates when showOwnMessages is on
+      if (botNick && parsed.username.toLowerCase() === botNick) continue;
+
       const msg = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         username: parsed.username,
@@ -169,6 +192,15 @@ export async function connectChat(channel: string): Promise<void> {
 export function sendChatMessage(text: string): void {
   if (!ws || !currentChannel || ws.readyState !== WebSocket.OPEN) return;
   ws.send(`PRIVMSG #${currentChannel} :${text}`);
+
+  const { username, userColour } = useTwitchStore.getState();
+  pushChatMessage({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    username: username || botNick || "me",
+    colour: userColour,
+    text,
+    timestamp: Date.now(),
+  });
 }
 
 /** Disconnect from Twitch chat. */

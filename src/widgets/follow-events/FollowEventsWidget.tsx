@@ -51,7 +51,7 @@ function formatTime(ts: number): string {
 function FollowEventsContent() {
   const entries = useFollows();
   const editMode = useOverlayStore((s) => s.editMode);
-  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   if (entries.length === 0) {
     return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No follows yet</p>;
