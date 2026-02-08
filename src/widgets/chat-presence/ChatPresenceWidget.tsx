@@ -68,7 +68,7 @@ function ChatPresenceContent() {
     return () => stopTracking();
   }, [authenticated, overThreshold]);
 
-  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   if (!authenticated) {
     return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>Log in to track chat presence</p>;

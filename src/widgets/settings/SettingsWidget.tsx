@@ -145,6 +145,8 @@ function ChannelSection() {
 function OptionsSection() {
   const fileLogging = useOverlayStore((s) => s.fileLogging);
   const toggleFileLogging = useOverlayStore((s) => s.toggleFileLogging);
+  const twitchColours = useOverlayStore((s) => s.twitchColours);
+  const toggleTwitchColours = useOverlayStore((s) => s.toggleTwitchColours);
   const presenceThreshold = useOverlayStore((s) => s.presenceThreshold);
   const setPresenceThreshold = useOverlayStore((s) => s.setPresenceThreshold);
 
@@ -159,6 +161,15 @@ function OptionsSection() {
           className="accent-blue-500"
         />
         Log events to file
+      </label>
+      <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={twitchColours}
+          onChange={toggleTwitchColours}
+          className="accent-blue-500"
+        />
+        Twitch name colours
       </label>
       <div className="flex items-center gap-2">
         <label className="text-xs text-white/60">Presence threshold</label>

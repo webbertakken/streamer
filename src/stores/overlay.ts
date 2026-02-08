@@ -26,6 +26,8 @@ interface OverlayStore {
   updateInstance: (instanceId: string, partial: Partial<WidgetInstance>) => void;
   fileLogging: boolean;
   toggleFileLogging: () => void;
+  twitchColours: boolean;
+  toggleTwitchColours: () => void;
   presenceThreshold: number;
   setPresenceThreshold: (threshold: number) => void;
   restoreDefaults: () => void;
@@ -92,7 +94,9 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
     })),
   fileLogging: true,
   toggleFileLogging: () => set((s) => ({ fileLogging: !s.fileLogging })),
+  twitchColours: true,
+  toggleTwitchColours: () => set((s) => ({ twitchColours: !s.twitchColours })),
   presenceThreshold: 1000,
   setPresenceThreshold: (threshold) => set({ presenceThreshold: threshold }),
-  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, presenceThreshold: 1000 }),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: true, presenceThreshold: 1000 }),
 }));

@@ -5,9 +5,11 @@ interface TwitchStore {
   connected: boolean;
   authenticated: boolean;
   username: string;
+  userColour: string;
   setChannel: (channel: string) => void;
   setConnected: (connected: boolean) => void;
   setAuth: (authenticated: boolean, username: string) => void;
+  setUserColour: (colour: string) => void;
 }
 
 export const useTwitchStore = create<TwitchStore>((set) => ({
@@ -15,6 +17,7 @@ export const useTwitchStore = create<TwitchStore>((set) => ({
   connected: false,
   authenticated: false,
   username: "",
+  userColour: "#FFFFFF",
   setChannel: (channel) => set({ channel }),
   setConnected: (connected) => set({ connected }),
   setAuth: (authenticated, username) =>
@@ -23,4 +26,5 @@ export const useTwitchStore = create<TwitchStore>((set) => ({
       username,
       channel: !s.channel && authenticated ? username : s.channel,
     })),
+  setUserColour: (colour) => set({ userColour: colour }),
 }));

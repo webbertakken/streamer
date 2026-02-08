@@ -57,7 +57,7 @@ function EventFeedContent() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [evts.length]);
 
-  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1.5 scrollbar-thin">

@@ -109,7 +109,7 @@ function EventLogContent() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [log.length]);
 
-  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   if (log.length === 0) {
     return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No events yet</p>;

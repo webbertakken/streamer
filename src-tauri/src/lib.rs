@@ -14,6 +14,33 @@ fn set_ignore_cursor(window: tauri::WebviewWindow, ignore: bool) -> Result<(), S
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn get_cursor_position(window: tauri::WebviewWindow) -> Result<(f64, f64), String> {
+    #[cfg(target_os = "windows")]
+    {
+        #[repr(C)]
+        struct POINT {
+            x: i32,
+            y: i32,
+        }
+        extern "system" {
+            fn GetCursorPos(lp_point: *mut POINT) -> i32;
+        }
+        let mut point = POINT { x: 0, y: 0 };
+        if unsafe { GetCursorPos(&mut point) } == 0 {
+            return Err("GetCursorPos failed".into());
+        }
+        let win_pos = window.outer_position().map_err(|e| e.to_string())?;
+        let scale = window.scale_factor().map_err(|e| e.to_string())?;
+        Ok((
+            (point.x - win_pos.x) as f64 / scale,
+            (point.y - win_pos.y) as f64 / scale,
+        ))
+    }
+    #[cfg(not(target_os = "windows"))]
+    Err("get_cursor_position is only supported on Windows".into())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -21,6 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             set_ignore_cursor,
+            get_cursor_position,
             auth::auth_device_start,
             auth::auth_device_poll,
             auth::auth_status,

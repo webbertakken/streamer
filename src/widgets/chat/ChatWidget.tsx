@@ -49,16 +49,19 @@ function useChatMessages(): ChatMessage[] {
   return messages;
 }
 
+const DEFAULT_NAME_COLOUR = "#FFFFFF";
+
 function ChatContent() {
   const msgs = useChatMessages();
   const editMode = useOverlayStore((s) => s.editMode);
+  const twitchColours = useOverlayStore((s) => s.twitchColours);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs.length]);
 
-  const lineBg = editMode ? "" : "bg-black/60 rounded px-1";
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1 scrollbar-thin">
@@ -67,7 +70,7 @@ function ChatContent() {
       )}
       {msgs.map((msg) => (
         <div key={msg.id} className={`text-sm leading-snug ${lineBg}`}>
-          <span className="font-bold" style={{ color: msg.colour }}>
+          <span className="font-bold" style={{ color: twitchColours ? msg.colour : DEFAULT_NAME_COLOUR }}>
             {msg.username}
           </span>
           <span className="text-white/90">: {msg.text}</span>
@@ -77,11 +80,17 @@ function ChatContent() {
   );
 }
 
-function ChatInput() {
+const LONG_HOVER_MS = 500;
+const POLL_INTERVAL_MS = 200;
+
+function ChatInputContainer() {
   const [text, setText] = useState("");
   const editMode = useOverlayStore((s) => s.editMode);
   const authenticated = useTwitchStore((s) => s.authenticated);
   const connected = useTwitchStore((s) => s.connected);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hoverStartRef = useRef<number | null>(null);
 
   const disabled = !authenticated || !connected;
   const placeholder = !connected
@@ -95,45 +104,63 @@ function ChatInput() {
       sendChatMessage(text.trim());
       setText("");
     }
-  }
-
-  function handleFocus() {
-    if (!editMode) invoke("set_ignore_cursor", { ignore: false }).catch(console.error);
+    if (e.key === "Escape") {
+      inputRef.current?.blur();
+    }
   }
 
   function handleBlur() {
     if (!editMode) invoke("set_ignore_cursor", { ignore: true }).catch(console.error);
   }
 
+  // Poll OS cursor position to detect long hover when cursor events are ignored
+  useEffect(() => {
+    if (editMode) return;
+
+    const interval = setInterval(async () => {
+      if (!containerRef.current || !inputRef.current) return;
+      if (document.activeElement === inputRef.current) return;
+
+      try {
+        const [cx, cy] = await invoke<[number, number]>("get_cursor_position");
+        const rect = containerRef.current.getBoundingClientRect();
+
+        if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
+          if (hoverStartRef.current === null) {
+            hoverStartRef.current = Date.now();
+          } else if (Date.now() - hoverStartRef.current >= LONG_HOVER_MS) {
+            await invoke("set_ignore_cursor", { ignore: false });
+            inputRef.current.focus();
+            hoverStartRef.current = null;
+          }
+        } else {
+          hoverStartRef.current = null;
+        }
+      } catch {
+        // cursor position unavailable
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      clearInterval(interval);
+      hoverStartRef.current = null;
+    };
+  }, [editMode]);
+
   return (
-    <input
-      type="text"
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      onKeyDown={handleKeyDown}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      disabled={disabled}
-      placeholder={placeholder}
-      className="w-full bg-white/10 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
-    />
-  );
-}
-
-function ChatInputContainer() {
-  const editMode = useOverlayStore((s) => s.editMode);
-
-  function handleMouseEnter() {
-    if (!editMode) invoke("set_ignore_cursor", { ignore: false }).catch(console.error);
-  }
-
-  function handleMouseLeave() {
-    if (!editMode) invoke("set_ignore_cursor", { ignore: true }).catch(console.error);
-  }
-
-  return (
-    <div className="p-2 pt-0" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <ChatInput />
+    <div ref={containerRef} className="p-2 pt-0">
+      <input
+        ref={inputRef}
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        disabled={disabled}
+        placeholder={placeholder}
+        className="bg-black/30 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
+        style={{ fieldSizing: "content" } as React.CSSProperties}
+      />
     </div>
   );
 }
