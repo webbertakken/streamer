@@ -7,7 +7,7 @@ import { useTwitchStore } from "./stores/twitch";
 import { hydrate, hydrateChatHistory, startAutoSave } from "./stores/persistence";
 import { checkAuth } from "./twitch/auth";
 import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
-import { startFollowerPolling, stopFollowerPolling } from "./twitch/helix";
+import { startFollowerPolling, stopFollowerPolling, startViewerPolling, stopViewerPolling } from "./twitch/helix";
 import { startFileLogger, stopFileLogger } from "./events/file-logger";
 import { SettingsWidget } from "./widgets/settings/SettingsWidget";
 import "./App.css";
@@ -63,6 +63,7 @@ function App() {
     if (!authenticated || !username) {
       disconnectEventSub();
       stopFollowerPolling();
+      stopViewerPolling();
       return;
     }
 
@@ -76,6 +77,7 @@ function App() {
         if (userId) {
           connectEventSub(userId);
           startFollowerPolling(userId);
+          startViewerPolling(userId);
         }
       })
       .catch(console.error);
@@ -83,6 +85,7 @@ function App() {
     return () => {
       disconnectEventSub();
       stopFollowerPolling();
+      stopViewerPolling();
     };
   }, [authenticated, username]);
 
