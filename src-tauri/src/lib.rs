@@ -15,18 +15,19 @@ fn set_ignore_cursor(window: tauri::WebviewWindow, ignore: bool) -> Result<(), S
 }
 
 #[tauri::command]
+#[allow(unused_variables)]
 fn get_cursor_position(window: tauri::WebviewWindow) -> Result<(f64, f64), String> {
     #[cfg(target_os = "windows")]
     {
         #[repr(C)]
-        struct POINT {
+        struct Point {
             x: i32,
             y: i32,
         }
         extern "system" {
-            fn GetCursorPos(lp_point: *mut POINT) -> i32;
+            fn GetCursorPos(lp_point: *mut Point) -> i32;
         }
-        let mut point = POINT { x: 0, y: 0 };
+        let mut point = Point { x: 0, y: 0 };
         if unsafe { GetCursorPos(&mut point) } == 0 {
             return Err("GetCursorPos failed".into());
         }
