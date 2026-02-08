@@ -54,12 +54,18 @@ pub fn write_settings(data: Value, state: tauri::State<'_, SettingsState>) -> Re
 pub fn read_chat_history(state: tauri::State<'_, SettingsState>) -> Result<Option<Value>, String> {
     match std::fs::read_to_string(&state.chat_history_path) {
         Ok(json) => {
-            info!("[chat-history] loaded from {}", state.chat_history_path.display());
+            info!(
+                "[chat-history] loaded from {}",
+                state.chat_history_path.display()
+            );
             let data: Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
             Ok(Some(data))
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            info!("[chat-history] no file at {}", state.chat_history_path.display());
+            info!(
+                "[chat-history] no file at {}",
+                state.chat_history_path.display()
+            );
             Ok(None)
         }
         Err(e) => {
@@ -70,7 +76,10 @@ pub fn read_chat_history(state: tauri::State<'_, SettingsState>) -> Result<Optio
 }
 
 #[tauri::command]
-pub fn write_chat_history(data: Value, state: tauri::State<'_, SettingsState>) -> Result<(), String> {
+pub fn write_chat_history(
+    data: Value,
+    state: tauri::State<'_, SettingsState>,
+) -> Result<(), String> {
     if let Some(parent) = state.chat_history_path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
@@ -79,6 +88,9 @@ pub fn write_chat_history(data: Value, state: tauri::State<'_, SettingsState>) -
         error!("[chat-history] write error: {e}");
         e.to_string()
     })?;
-    info!("[chat-history] saved to {}", state.chat_history_path.display());
+    info!(
+        "[chat-history] saved to {}",
+        state.chat_history_path.display()
+    );
     Ok(())
 }

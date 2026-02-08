@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src --deny-warnings",
+    "test": "vitest run --passWithNoTests",
+    "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
+    "rust:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml --check"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -23,9 +29,11 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "oxlint": "^1.43.0",
     "tailwindcss": "^4",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "vitest": "^4.0.18"
   },
   "volta": {
     "node": "22.17.1",

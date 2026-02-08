@@ -240,8 +240,7 @@ pub async fn auth_device_poll(
     expires_in: u64,
     state: tauri::State<'_, Arc<AuthState>>,
 ) -> Result<AuthStatusResponse, String> {
-    let deadline =
-        tokio::time::Instant::now() + tokio::time::Duration::from_secs(expires_in);
+    let deadline = tokio::time::Instant::now() + tokio::time::Duration::from_secs(expires_in);
     let poll_interval = tokio::time::Duration::from_secs(interval.max(5));
 
     loop {
@@ -259,18 +258,14 @@ pub async fn auth_device_poll(
                 ("client_id", CLIENT_ID),
                 ("scopes", SCOPES),
                 ("device_code", device_code.as_str()),
-                (
-                    "grant_type",
-                    "urn:ietf:params:oauth:grant-type:device_code",
-                ),
+                ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
             ])
             .send()
             .await
             .map_err(|e| e.to_string())?;
 
         if resp.status().is_success() {
-            let tokens: TwitchTokenResponse =
-                resp.json().await.map_err(|e| e.to_string())?;
+            let tokens: TwitchTokenResponse = resp.json().await.map_err(|e| e.to_string())?;
             info!("[auth] device flow got tokens, validating…");
             let username = validate_token(&state.http, &tokens.access_token).await?;
             let now = chrono::Utc::now().timestamp();
@@ -340,10 +335,7 @@ pub async fn auth_logout(state: tauri::State<'_, Arc<AuthState>>) -> Result<(), 
         let _ = state
             .http
             .post("https://id.twitch.tv/oauth2/revoke")
-            .form(&[
-                ("client_id", CLIENT_ID),
-                ("token", &data.access_token),
-            ])
+            .form(&[("client_id", CLIENT_ID), ("token", &data.access_token)])
             .send()
             .await;
     }
