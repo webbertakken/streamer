@@ -58,6 +58,7 @@ const badgeColours: Record<ChannelEventType, string> = {
   stream_offline: "bg-red-500",
   channel_update: "bg-indigo-500",
   follower_count_update: "bg-emerald-500",
+  viewer_count_update: "bg-sky-500",
 };
 
 function summarise(event: ChannelEvent): string {
@@ -91,6 +92,8 @@ function summarise(event: ChannelEvent): string {
       return `Channel updated: ${d.title || ""}`;
     case "follower_count_update":
       return `Follower count: ${d.total}`;
+    case "viewer_count_update":
+      return `Viewer count: ${d.count}`;
     default:
       return JSON.stringify(d);
   }

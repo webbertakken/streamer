@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { useOverlayStore } from "../../stores/overlay";
+import { subscribe } from "../../events/bus";
 import { create } from "zustand";
 
 interface ViewerCountState {
@@ -15,7 +17,16 @@ export const useViewerCount = create<ViewerCountState>((set) => ({
 
 function ViewerCountContent() {
   const count = useViewerCount((s) => s.count);
+  const setCount = useViewerCount((s) => s.setCount);
   const editMode = useOverlayStore((s) => s.editMode);
+
+  useEffect(() => {
+    return subscribe((event) => {
+      if (event.type === "viewer_count_update") {
+        setCount(event.data.count as number);
+      }
+    });
+  }, [setCount]);
 
   return (
     <div className="h-full flex items-center justify-center px-4">

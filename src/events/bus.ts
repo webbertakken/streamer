@@ -13,7 +13,8 @@ export type ChannelEventType =
   | "stream_online"
   | "stream_offline"
   | "channel_update"
-  | "follower_count_update";
+  | "follower_count_update"
+  | "viewer_count_update";
 
 export interface ChannelEvent {
   type: ChannelEventType;
