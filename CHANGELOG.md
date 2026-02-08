@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/webbertakken/streamer/compare/v0.3.0...v0.3.1) (2026-02-08)
+
+
+### Bug fixes
+
+* snap widget dragging, resizing, and defaults to 8px grid ([#11](https://github.com/webbertakken/streamer/issues/11)) ([11955d1](https://github.com/webbertakken/streamer/commit/11955d1df9ad6b18ede4fc914112f15e6a5608ce))
+
 ## [0.3.0](https://github.com/webbertakken/streamer/compare/v0.2.2...v0.3.0) (2026-02-08)
 
 
