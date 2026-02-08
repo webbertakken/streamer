@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/webbertakken/streamer/compare/v0.2.1...v0.2.2) (2026-02-08)
+
+
+### Bug Fixes
+
+* **ci:** use PAT for release please to trigger build workflow ([#5](https://github.com/webbertakken/streamer/issues/5)) ([c05633c](https://github.com/webbertakken/streamer/commit/c05633c95ced01b90564f581e1a38d415be59912))
+
 ## [0.2.1](https://github.com/webbertakken/streamer/compare/v0.2.0...v0.2.1) (2026-02-07)
 
 
