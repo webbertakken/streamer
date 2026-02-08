@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/webbertakken/streamer/compare/v0.2.2...v0.3.0) (2026-02-08)
+
+
+### Features
+
+* overlay UX improvements and chat enhancements ([#7](https://github.com/webbertakken/streamer/issues/7)) ([7de4815](https://github.com/webbertakken/streamer/commit/7de4815cf6ea59692552241167df4e708fee9f9b))
+* viewer count polling and changelog improvements ([#10](https://github.com/webbertakken/streamer/issues/10)) ([3110532](https://github.com/webbertakken/streamer/commit/311053283d126d4f1ad9fac06414c455944f391c))
+
+
+### Maintenance
+
+* add checks workflow for frontend and Rust ([#9](https://github.com/webbertakken/streamer/issues/9)) ([a2b6690](https://github.com/webbertakken/streamer/commit/a2b6690f8b4d2ea11fe80544855a27d5ba76adf2))
+
 ## [0.2.2](https://github.com/webbertakken/streamer/compare/v0.2.1...v0.2.2) (2026-02-08)
 
 
