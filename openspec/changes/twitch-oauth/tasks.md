@@ -21,7 +21,7 @@
 
 ## 4. Event log file writing (Rust)
 
-- [x] 4.1 Implement `append_event_log` command: accept JSON string, append to `{app_data_dir}/logs/{channel}-{date}.jsonl`
+- [x] 4.1 Implement `append_event_log` command: accept JSON string, append to `~/.config/streamer/logs/{channel}-{date}.jsonl`
 - [x] 4.2 Add buffered writer that flushes periodically (not on every call)
 - [x] 4.3 Handle date rollover: detect date change and open a new file
 

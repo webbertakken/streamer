@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useOverlayStore, type WidgetInstance } from "./overlay";
 import { useTwitchStore } from "./twitch";
 import { getWidget } from "../widgets/registry";
+import type { SoundMapping } from "../audio/sounds";
 import {
   type ChatMessage,
   getChatMessages,
@@ -23,7 +24,13 @@ interface PersistedSettings {
     instances: (WidgetInstance | { instanceId: string; typeId: string })[];
     widgetStates?: Record<string, OldWidgetState>;
     fileLogging: boolean;
+    twitchColours?: boolean;
     presenceThreshold: number;
+    commands?: { trigger: string; response: string; enabled: boolean }[];
+    soundEnabled?: boolean;
+    soundVolume?: number;
+    soundMappings?: Record<string, SoundMapping>;
+    selectedMonitors?: string[];
   };
   twitch?: {
     channel: string;
@@ -60,8 +67,16 @@ export async function hydrate(): Promise<void> {
         width: old?.width ?? def?.defaults.width ?? 300,
         height: old?.height ?? def?.defaults.height ?? 200,
         visible: old?.visible ?? true,
+        locked: false,
+        opacity: 100,
       };
     });
+
+    // Migrate: add locked/opacity defaults for existing settings missing them
+    for (const inst of instances) {
+      if (inst.locked === undefined) inst.locked = false;
+      if (inst.opacity === undefined) inst.opacity = 100;
+    }
 
     // Migrate legacy global customText config into custom-text instances that lack config
     if (data.customText?.config) {
@@ -75,7 +90,13 @@ export async function hydrate(): Promise<void> {
     useOverlayStore.setState({
       instances,
       fileLogging: data.overlay.fileLogging,
+      ...(data.overlay.twitchColours !== undefined && { twitchColours: data.overlay.twitchColours }),
       presenceThreshold: data.overlay.presenceThreshold,
+      ...(data.overlay.commands && { commands: data.overlay.commands }),
+      ...(data.overlay.soundEnabled !== undefined && { soundEnabled: data.overlay.soundEnabled }),
+      ...(data.overlay.soundVolume !== undefined && { soundVolume: data.overlay.soundVolume }),
+      ...(data.overlay.soundMappings && { soundMappings: data.overlay.soundMappings }),
+      ...(data.overlay.selectedMonitors && { selectedMonitors: data.overlay.selectedMonitors }),
     });
   }
 
@@ -104,7 +125,13 @@ function gatherState(): PersistedSettings {
     overlay: {
       instances: overlay.instances,
       fileLogging: overlay.fileLogging,
+      twitchColours: overlay.twitchColours,
       presenceThreshold: overlay.presenceThreshold,
+      commands: overlay.commands,
+      soundEnabled: overlay.soundEnabled,
+      soundVolume: overlay.soundVolume,
+      soundMappings: overlay.soundMappings,
+      selectedMonitors: overlay.selectedMonitors,
     },
     twitch: { channel: twitch.channel },
   };

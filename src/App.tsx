@@ -9,10 +9,14 @@ import { checkAuth } from "./twitch/auth";
 import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
 import { startFollowerPolling, stopFollowerPolling, startViewerPolling, stopViewerPolling } from "./twitch/helix";
 import { startFileLogger, stopFileLogger } from "./events/file-logger";
+import { initCommandEventListeners } from "./twitch/irc";
+import { initSoundAlerts } from "./audio/listener";
+import { useSecondaryWindow, startBroadcasting, stopBroadcasting, closeAllMonitorWindows } from "./multimonitor";
 import { SettingsWidget } from "./widgets/settings/SettingsWidget";
 import "./App.css";
 
 function App() {
+  const isSecondary = useSecondaryWindow();
   const overlayVisible = useOverlayStore((s) => s.overlayVisible);
   const toggleOverlayVisible = useOverlayStore((s) => s.toggleOverlayVisible);
   const editMode = useOverlayStore((s) => s.editMode);
@@ -24,8 +28,13 @@ function App() {
   const authenticated = useTwitchStore((s) => s.authenticated);
   const username = useTwitchStore((s) => s.username);
 
-  // Hydrate persisted state, seed if first run, then start auto-save
+  // Hydrate persisted state, seed if first run, then start auto-save (primary only)
   useEffect(() => {
+    if (isSecondary) {
+      // Secondary windows get state via sync events; just mark as hydrated
+      useOverlayStore.getState().setHydrated(true);
+      return;
+    }
     hydrate()
       .then(() => {
         const { instances } = useOverlayStore.getState();
@@ -36,11 +45,27 @@ function App() {
       })
       .catch(console.error);
     startFileLogger();
-    return () => stopFileLogger();
-  }, [seedIfNeeded]);
+    initCommandEventListeners();
+    const unsubSoundAlerts = initSoundAlerts();
+    return () => {
+      stopFileLogger();
+      unsubSoundAlerts();
+    };
+  }, [seedIfNeeded, isSecondary]);
 
-  // Global shortcuts
+  // Start broadcasting state to secondary windows (primary only)
   useEffect(() => {
+    if (isSecondary) return;
+    startBroadcasting();
+    return () => {
+      stopBroadcasting();
+      closeAllMonitorWindows().catch(console.error);
+    };
+  }, [isSecondary]);
+
+  // Global shortcuts (primary only)
+  useEffect(() => {
+    if (isSecondary) return;
     register("Ctrl+Shift+I", (e) => {
       if (e.state === "Pressed") toggleEditMode();
     }).catch(console.error);
@@ -51,15 +76,16 @@ function App() {
       unregister("Ctrl+Shift+I").catch(console.error);
       unregister("Ctrl+Shift+O").catch(console.error);
     };
-  }, [toggleEditMode, toggleOverlayVisible]);
+  }, [toggleEditMode, toggleOverlayVisible, isSecondary]);
 
   // Cursor passthrough
   useEffect(() => {
     invoke("set_ignore_cursor", { ignore: !editMode }).catch(console.error);
   }, [editMode]);
 
-  // EventSub + follower polling when authenticated
+  // EventSub + follower polling when authenticated (primary only)
   useEffect(() => {
+    if (isSecondary) return;
     if (!authenticated || !username) {
       disconnectEventSub();
       stopFollowerPolling();
@@ -87,14 +113,14 @@ function App() {
       stopFollowerPolling();
       stopViewerPolling();
     };
-  }, [authenticated, username]);
+  }, [authenticated, username, isSecondary]);
 
   if (!hydrated) return null;
   if (!overlayVisible) return null;
 
   return (
     <div className="h-screen w-screen relative">
-      {editMode && (
+      {editMode && !isSecondary && (
         <div className="fixed top-2 right-2 z-50 bg-blue-600/80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
           Edit mode — Ctrl+Shift+I to exit
         </div>
@@ -105,7 +131,7 @@ function App() {
         const Component = def.component;
         return <Component key={inst.instanceId} instanceId={inst.instanceId} />;
       })}
-      <SettingsWidget />
+      {!isSecondary && <SettingsWidget />}
     </div>
   );
 }

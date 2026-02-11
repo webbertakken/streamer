@@ -148,7 +148,7 @@ function ChatInputContainer() {
   }, [editMode]);
 
   return (
-    <div ref={containerRef} className="p-2 pt-0">
+    <div ref={containerRef} className="p-2 pt-0 min-w-0">
       <input
         ref={inputRef}
         type="text"
@@ -158,7 +158,7 @@ function ChatInputContainer() {
         onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder}
-        className="bg-black/30 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
+        className="max-w-full bg-black/30 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
         style={{ fieldSizing: "content" } as React.CSSProperties}
       />
     </div>
