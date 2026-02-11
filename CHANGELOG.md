@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/webbertakken/streamer/compare/v0.3.1...v0.4.0) (2026-02-11)
+
+
+### Features
+
+* Twitch feature bundle — widgets, alerts, sound, presets, multi-monitor ([#15](https://github.com/webbertakken/streamer/issues/15)) ([8e9558d](https://github.com/webbertakken/streamer/commit/8e9558d5f0549a48507634b06264e01f8b98c5e3))
+
+
+### Bug fixes
+
+* snap widget dragging, resizing, and defaults to 8px grid ([#13](https://github.com/webbertakken/streamer/issues/13)) ([46737a1](https://github.com/webbertakken/streamer/commit/46737a114d2bf94f90516a47307a0c7c3f8e1f93))
+
 ## [0.3.1](https://github.com/webbertakken/streamer/compare/v0.3.0...v0.3.1) (2026-02-08)
 
 
