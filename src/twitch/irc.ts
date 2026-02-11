@@ -70,9 +70,13 @@ export function initCommandEventListeners(): void {
     }
   });
 
-  // Fetch initial stream state from Helix so {uptime}, {game}, {title} work immediately
-  const { channel } = useTwitchStore.getState();
-  if (channel) {
+  // Fetch initial stream state from Helix once authenticated and channel is set
+  let fetched = false;
+  const fetchInitialState = () => {
+    if (fetched) return;
+    const { channel, authenticated } = useTwitchStore.getState();
+    if (!channel || !authenticated) return;
+    fetched = true;
     fetchStreamInfo({ login: channel })
       .then((info) => {
         if (info) {
@@ -82,7 +86,10 @@ export function initCommandEventListeners(): void {
         }
       })
       .catch(console.error);
-  }
+  };
+
+  fetchInitialState();
+  useTwitchStore.subscribe(fetchInitialState);
 }
 
 /** Check if a message matches a chat command and respond if so */

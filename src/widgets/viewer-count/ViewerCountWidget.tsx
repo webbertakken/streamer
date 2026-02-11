@@ -16,13 +16,6 @@ export const useViewerCount = create<ViewerCountState>((set) => ({
   setCount: (count) => set({ count }),
 }));
 
-/** Computes the connection status dot classes based on IRC and EventSub state. */
-function connectionDotClass(irc: boolean, eventSub: boolean): string {
-  if (irc && eventSub) return "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
-  if (irc || eventSub) return "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
-  return "w-2.5 h-2.5 rounded-full bg-red-500";
-}
-
 function ViewerCountContent() {
   const count = useViewerCount((s) => s.count);
   const setCount = useViewerCount((s) => s.setCount);
@@ -38,15 +31,22 @@ function ViewerCountContent() {
     });
   }, [setCount]);
 
-  const dotClass = connectionDotClass(connected, eventSubConnected);
-  const tooltip = editMode
-    ? `IRC: ${connected ? "connected" : "disconnected"}\nEventSub: ${eventSubConnected ? "connected" : "disconnected"}`
-    : undefined;
+  const isConnected = connected || eventSubConnected;
+  const channel = useTwitchStore((s) => s.channel);
+
+  if (!isConnected) {
+    const label = channel ? "Reconnecting…" : "Disconnected.";
+    return (
+      <div className="h-full flex items-center justify-center px-4">
+        <span className="text-white/50 text-sm">{label}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex items-center justify-center px-4">
       <div className={`flex items-center gap-2 px-2 py-0.5 ${editMode ? "" : "bg-black/30 rounded"}`}>
-        <div className={dotClass} title={tooltip} />
+        <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80 animate-[pulse_5s_ease-in-out_infinite]" />
         <span className="text-white text-2xl font-bold tabular-nums">{count.toLocaleString()}</span>
         <span className="text-white/60 text-sm">viewers</span>
       </div>
