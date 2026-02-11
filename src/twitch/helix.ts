@@ -52,17 +52,29 @@ export function stopFollowerPolling(): void {
   }
 }
 
+interface StreamData {
+  viewer_count: number;
+  started_at: string;
+  title: string;
+  game_name: string;
+}
+
 interface StreamsResponse {
-  data: Array<{ viewer_count: number }>;
+  data: StreamData[];
+}
+
+/** Fetch stream info by user ID or login. Returns null if offline. */
+export async function fetchStreamInfo(opts: { userId?: string; login?: string }): Promise<StreamData | null> {
+  const param = opts.userId ? `user_id=${opts.userId}` : `user_login=${opts.login}`;
+  const raw: string = await invoke("helix_get", { path: `/streams?${param}` });
+  const resp: StreamsResponse = JSON.parse(raw);
+  return resp.data?.[0] ?? null;
 }
 
 /** Fetch the current viewer count for a broadcaster. Returns 0 if offline. */
 export async function fetchViewerCount(broadcasterId: string): Promise<number> {
-  const raw: string = await invoke("helix_get", {
-    path: `/streams?user_id=${broadcasterId}`,
-  });
-  const resp: StreamsResponse = JSON.parse(raw);
-  return resp.data?.[0]?.viewer_count ?? 0;
+  const info = await fetchStreamInfo({ userId: broadcasterId });
+  return info?.viewer_count ?? 0;
 }
 
 /** Start polling viewer count every 60 seconds. Publishes events to the bus. */

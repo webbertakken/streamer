@@ -33,35 +33,6 @@
     "y": 52
   },
   {
-    "config": {
-      "colour": "#ffffff",
-      "fontFamily": "sans-serif",
-      "fontSize": 24,
-      "text": "Press \"Ctrl + Shift + I\" for overlay Edit-mode.",
-      "textAlign": "center"
-    },
-    "height": 50,
-    "instanceId": "custom-text-1",
-    "locked": false,
-    "opacity": 100,
-    "typeId": "custom-text",
-    "visible": true,
-    "width": 543,
-    "x": 1022,
-    "y": 93
-  },
-  {
-    "height": 215,
-    "instanceId": "event-log-1",
-    "locked": false,
-    "opacity": 100,
-    "typeId": "event-log",
-    "visible": true,
-    "width": 415,
-    "x": 5,
-    "y": 1164
-  },
-  {
     "height": 120,
     "instanceId": "raid-alerts-1",
     "locked": false,
@@ -69,8 +40,8 @@
     "typeId": "raid-alerts",
     "visible": true,
     "width": 350,
-    "x": 1340,
-    "y": 1133
+    "x": 1051,
+    "y": 1134
   },
   {
     "height": 120,
@@ -80,8 +51,8 @@
     "typeId": "subscription-alerts",
     "visible": true,
     "width": 350,
-    "x": 936,
-    "y": 1133
+    "x": 1596,
+    "y": 1132
   },
   {
     "height": 120,

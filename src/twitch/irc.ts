@@ -4,6 +4,7 @@ import { useTwitchStore } from "../stores/twitch";
 import { useOverlayStore } from "../stores/overlay";
 import { publish, subscribe as subscribeBus } from "../events/bus";
 import { useViewerCount } from "../widgets/viewer-count/ViewerCountWidget";
+import { fetchStreamInfo } from "./helix";
 
 const IRC_URL = "wss://irc-ws.chat.twitch.tv:443";
 const RECONNECT_DELAY_MS = 3000;
@@ -23,17 +24,19 @@ interface IrcTokenResponse {
 let streamStartedAt: Date | null = null;
 let lastCommandTime = 0;
 
+/** Recently sent message texts, used to deduplicate IRC echoes */
+const recentSentTexts = new Set<string>();
+
 /** Resolve template variables in command responses */
 function resolveTemplateVars(template: string): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => {
     switch (key) {
       case "uptime": {
-        if (!streamStartedAt) return "Stream is offline";
+        if (!streamStartedAt) return "offline";
         const ms = Date.now() - streamStartedAt.getTime();
         const hours = Math.floor(ms / 3_600_000);
         const mins = Math.floor((ms % 3_600_000) / 60_000);
-        const duration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-        return `Stream has been live for ${duration}`;
+        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
       }
       case "game":
         return (streamInfoCache.game as string) || "unknown";
@@ -66,6 +69,20 @@ export function initCommandEventListeners(): void {
       streamInfoCache.followers = String(event.data.count);
     }
   });
+
+  // Fetch initial stream state from Helix so {uptime}, {game}, {title} work immediately
+  const { channel } = useTwitchStore.getState();
+  if (channel) {
+    fetchStreamInfo({ login: channel })
+      .then((info) => {
+        if (info) {
+          streamStartedAt = new Date(info.started_at);
+          streamInfoCache.title = info.title;
+          streamInfoCache.game = info.game_name;
+        }
+      })
+      .catch(console.error);
+  }
 }
 
 /** Check if a message matches a chat command and respond if so */
@@ -168,22 +185,25 @@ function handleMessage(event: MessageEvent<string>) {
 
     const parsed = parsePRIVMSG(line);
     if (parsed) {
-      // Skip echoed own messages to avoid duplicates when showOwnMessages is on
-      if (botNick && parsed.username.toLowerCase() === botNick) continue;
+      const isOwnEcho = botNick && parsed.username.toLowerCase() === botNick && recentSentTexts.has(parsed.text);
 
-      const msg = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        username: parsed.username,
-        colour: parsed.colour,
-        text: parsed.text,
-        timestamp: Date.now(),
-      };
-      pushChatMessage(msg);
-      publish({
-        type: "chat",
-        timestamp: msg.timestamp,
-        data: { username: parsed.username, text: parsed.text },
-      });
+      if (!isOwnEcho) {
+        const msg = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          username: parsed.username,
+          colour: parsed.colour,
+          text: parsed.text,
+          timestamp: Date.now(),
+        };
+        pushChatMessage(msg);
+        publish({
+          type: "chat",
+          timestamp: msg.timestamp,
+          data: { username: parsed.username, text: parsed.text },
+        });
+      }
+
+      // Always process commands (including our own messages sent from the widget)
       handleChatCommand(parsed.text);
       continue;
     }
@@ -267,6 +287,8 @@ export async function connectChat(channel: string): Promise<void> {
 export function sendChatMessage(text: string): void {
   if (!ws || !currentChannel || ws.readyState !== WebSocket.OPEN) return;
   ws.send(`PRIVMSG #${currentChannel} :${text}`);
+  recentSentTexts.add(text);
+  setTimeout(() => recentSentTexts.delete(text), 5000);
 
   const { username, userColour } = useTwitchStore.getState();
   pushChatMessage({

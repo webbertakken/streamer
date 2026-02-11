@@ -23,7 +23,7 @@ export interface ChatCommand {
 }
 
 const DEFAULT_COMMANDS: ChatCommand[] = [
-  { trigger: "!uptime", response: "{uptime}", enabled: true },
+  { trigger: "!uptime", response: "Uptime: {uptime}", enabled: true },
   { trigger: "!game", response: "Currently playing {game}", enabled: true },
 ];
 
