@@ -1,0 +1,4 @@
+yarn lint-staged
+yarn typecheck
+yarn rust:fmt
+yarn rust:clippy

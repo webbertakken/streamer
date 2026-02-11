@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use tauri::Manager;
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, reload};
+use tracing_subscriber::{fmt, layer::SubscriberExt, reload, util::SubscriberInitExt, EnvFilter};
 
 mod auth;
 mod event_log;
@@ -198,9 +198,7 @@ pub fn run() {
                                 }
                                 _ => {
                                     eprintln!("[log] unknown level: {level}");
-                                    eprintln!(
-                                        "[log] usage: log <trace|debug|info|warn|error>"
-                                    );
+                                    eprintln!("[log] usage: log <trace|debug|info|warn|error>");
                                 }
                             }
                         } else if !trimmed.is_empty() {

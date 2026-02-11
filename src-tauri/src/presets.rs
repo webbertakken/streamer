@@ -34,7 +34,10 @@ pub fn list_presets() -> Result<Vec<PresetInfo>, String> {
                 .and_then(|s| s.to_str())
                 .unwrap_or("unknown")
                 .to_string();
-            presets.push(PresetInfo { name, path: path.to_string_lossy().to_string() });
+            presets.push(PresetInfo {
+                name,
+                path: path.to_string_lossy().to_string(),
+            });
         }
     }
     Ok(presets)
