@@ -1,10 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import { pushChatMessage } from "../widgets/chat/ChatWidget";
 import { useTwitchStore } from "../stores/twitch";
-import { publish } from "../events/bus";
+import { useOverlayStore } from "../stores/overlay";
+import { publish, subscribe as subscribeBus } from "../events/bus";
+import { useViewerCount } from "../widgets/viewer-count/ViewerCountWidget";
 
 const IRC_URL = "wss://irc-ws.chat.twitch.tv:443";
 const RECONNECT_DELAY_MS = 3000;
+const COMMAND_COOLDOWN_MS = 5000;
 
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -14,6 +17,77 @@ let botNick: string | null = null;
 interface IrcTokenResponse {
   token: string;
   username: string;
+}
+
+/** Track stream start time for {uptime} template variable */
+let streamStartedAt: Date | null = null;
+let lastCommandTime = 0;
+
+/** Resolve template variables in command responses */
+function resolveTemplateVars(template: string): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => {
+    switch (key) {
+      case "uptime": {
+        if (!streamStartedAt) return "Stream is offline";
+        const ms = Date.now() - streamStartedAt.getTime();
+        const hours = Math.floor(ms / 3_600_000);
+        const mins = Math.floor((ms % 3_600_000) / 60_000);
+        const duration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+        return `Stream has been live for ${duration}`;
+      }
+      case "game":
+        return (streamInfoCache.game as string) || "unknown";
+      case "title":
+        return (streamInfoCache.title as string) || "unknown";
+      case "viewers":
+        return useViewerCount.getState().count.toLocaleString();
+      case "followers":
+        return (streamInfoCache.followers as string) || "unknown";
+      default:
+        return match;
+    }
+  });
+}
+
+/** Cache for stream info from event bus (used by template resolver) */
+const streamInfoCache: Record<string, unknown> = {};
+
+/** Initialise the event bus listener for stream info used by chat commands */
+export function initCommandEventListeners(): void {
+  subscribeBus((event) => {
+    if (event.type === "stream_online") {
+      streamStartedAt = new Date(event.data.started_at as string);
+    } else if (event.type === "stream_offline") {
+      streamStartedAt = null;
+    } else if (event.type === "channel_update") {
+      streamInfoCache.title = event.data.title;
+      streamInfoCache.game = event.data.category_name;
+    } else if (event.type === "follower_count_update") {
+      streamInfoCache.followers = String(event.data.count);
+    }
+  });
+}
+
+/** Check if a message matches a chat command and respond if so */
+function handleChatCommand(text: string): void {
+  const { authenticated } = useTwitchStore.getState();
+  if (!authenticated) return;
+
+  const now = Date.now();
+  if (now - lastCommandTime < COMMAND_COOLDOWN_MS) return;
+
+  const { commands } = useOverlayStore.getState();
+  const lowerText = text.trimStart().toLowerCase();
+
+  for (const cmd of commands) {
+    if (!cmd.enabled) continue;
+    if (lowerText === cmd.trigger.toLowerCase() || lowerText.startsWith(cmd.trigger.toLowerCase() + " ")) {
+      lastCommandTime = now;
+      const response = resolveTemplateVars(cmd.response);
+      sendChatMessage(response);
+      return;
+    }
+  }
 }
 
 /** Parse a PRIVMSG IRC line into a chat message, or null if not parseable. */
@@ -110,6 +184,7 @@ function handleMessage(event: MessageEvent<string>) {
         timestamp: msg.timestamp,
         data: { username: parsed.username, text: parsed.text },
       });
+      handleChatCommand(parsed.text);
       continue;
     }
 

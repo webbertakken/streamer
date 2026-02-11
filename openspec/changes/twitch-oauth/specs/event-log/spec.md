@@ -48,7 +48,7 @@ The system SHALL optionally write all events to a JSONL file on disk via a Rust 
 
 - **WHEN** file logging is enabled and an event occurs
 - **THEN** the event is sent to the Rust backend via `append_event_log`
-- **AND** written as a single JSON line to `{app_data_dir}/logs/{channel}-{date}.jsonl`
+- **AND** written as a single JSON line to `~/.config/streamer/logs/{channel}-{date}.jsonl`
 
 #### Scenario: File rotation by date
 

@@ -32,5 +32,5 @@ The overlay currently connects to Twitch chat anonymously (read-only). To send c
 - **Rust side**: New commands for secure token storage (Tauri's `tauri-plugin-store` or OS keychain) and possibly a localhost callback server for the OAuth redirect
 - **Twitch scopes required**: `chat:read`, `chat:edit`, `moderator:read:followers`, `user:read:chat`
 - **API rate limits**: Helix polling should respect rate limits (800 points/min for authenticated requests); follower count polled every 30-60s
-- **Filesystem**: Event log writes to a configurable path via Rust (default: `logs/` in the app data directory). File writing is behind a Tauri command, not done in the webview
+- **Filesystem**: Event log writes to a configurable path via Rust (default: `~/.config/streamer/logs/`). File writing is behind a Tauri command, not done in the webview
 - **Security**: Client ID can be bundled; client secret must NOT be bundled (PKCE flow avoids needing it). Tokens stored in OS keychain or encrypted store, never in webview localStorage

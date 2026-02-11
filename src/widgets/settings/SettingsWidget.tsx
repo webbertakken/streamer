@@ -1,9 +1,19 @@
-import { useState } from "react";
-import { useOverlayStore } from "../../stores/overlay";
+import { useState, useEffect, useCallback } from "react";
+import { invoke, convertFileSrc } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+import { useOverlayStore, type ChatCommand } from "../../stores/overlay";
 import { useTwitchStore } from "../../stores/twitch";
 import { connectChat, disconnectChat } from "../../twitch/irc";
 import { login, logout } from "../../twitch/auth";
 import { getWidgets } from "../registry";
+import { BUILTIN_SOUNDS, BUILTIN_SOUND_LABELS, type BuiltinSound } from "../../audio/synth";
+import { DEFAULT_SOUND_MAPPINGS, type SoundMapping } from "../../audio/sounds";
+import { playSound } from "../../audio/player";
+import { PresetsSection } from "./PresetsSection";
+import { type MonitorInfo, syncMonitorWindows } from "../../multimonitor";
+
+const TABS = ["General", "Widgets", "Twitch", "Appearance"] as const;
+type Tab = (typeof TABS)[number];
 
 function AuthSection() {
   const authenticated = useTwitchStore((s) => s.authenticated);
@@ -142,49 +152,6 @@ function ChannelSection() {
   );
 }
 
-function OptionsSection() {
-  const fileLogging = useOverlayStore((s) => s.fileLogging);
-  const toggleFileLogging = useOverlayStore((s) => s.toggleFileLogging);
-  const twitchColours = useOverlayStore((s) => s.twitchColours);
-  const toggleTwitchColours = useOverlayStore((s) => s.toggleTwitchColours);
-  const presenceThreshold = useOverlayStore((s) => s.presenceThreshold);
-  const setPresenceThreshold = useOverlayStore((s) => s.setPresenceThreshold);
-
-  return (
-    <div className="space-y-2">
-      <h3 className="text-white/70 text-xs font-medium">Options</h3>
-      <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={fileLogging}
-          onChange={toggleFileLogging}
-          className="accent-blue-500"
-        />
-        Log events to file
-      </label>
-      <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={twitchColours}
-          onChange={toggleTwitchColours}
-          className="accent-blue-500"
-        />
-        Twitch name colours
-      </label>
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-white/60">Presence threshold</label>
-        <input
-          type="number"
-          value={presenceThreshold}
-          onChange={(e) => setPresenceThreshold(Number(e.target.value) || 1000)}
-          min={0}
-          className="w-20 bg-white/10 text-white text-xs rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
-        />
-      </div>
-    </div>
-  );
-}
-
 function WidgetPicker() {
   const addInstance = useOverlayStore((s) => s.addInstance);
   const instances = useOverlayStore((s) => s.instances);
@@ -216,13 +183,9 @@ function WidgetPicker() {
 function RestoreDefaults() {
   const restoreDefaults = useOverlayStore((s) => s.restoreDefaults);
 
-  function handleRestore() {
-    restoreDefaults();
-  }
-
   return (
     <button
-      onClick={handleRestore}
+      onClick={restoreDefaults}
       className="w-full bg-red-600/60 hover:bg-red-600/80 text-white text-xs px-3 py-1.5 rounded transition-colors"
     >
       Restore default settings
@@ -230,25 +193,431 @@ function RestoreDefaults() {
   );
 }
 
-export function SettingsWidget() {
-  const editMode = useOverlayStore((s) => s.editMode);
-  if (!editMode) return null;
+/* --- Tab content --- */
+
+function GeneralTab() {
+  const fileLogging = useOverlayStore((s) => s.fileLogging);
+  const toggleFileLogging = useOverlayStore((s) => s.toggleFileLogging);
+  const instances = useOverlayStore((s) => s.instances);
+
+  function handleOpenLogFolder() {
+    invoke("open_log_folder").catch(console.error);
+  }
+
+  function handleSaveAsDefaults() {
+    const data = JSON.stringify(instances, null, 2);
+    invoke("write_default_layout", { data }).catch(console.error);
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      <div className="w-72 pointer-events-auto">
-      <div className="h-full bg-black/60 rounded-lg backdrop-blur-sm p-4 space-y-4">
-        <h2 className="text-white text-sm font-semibold">Settings</h2>
-        <AuthSection />
-        <hr className="border-white/10" />
-        <ChannelSection />
-        <hr className="border-white/10" />
-        <OptionsSection />
-        <hr className="border-white/10" />
-        <WidgetPicker />
-        <hr className="border-white/10" />
-        <RestoreDefaults />
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer flex-1">
+          <input
+            type="checkbox"
+            checked={fileLogging}
+            onChange={toggleFileLogging}
+            className="accent-blue-500"
+          />
+          Log events to file
+        </label>
+        <button
+          onClick={handleOpenLogFolder}
+          className="text-white/50 hover:text-white/80 transition-colors"
+          title="Open log folder"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <path d="M3.75 3A1.75 1.75 0 002 4.75v3.26a3.235 3.235 0 011.75-.51h12.5c.644 0 1.245.188 1.75.51V6.75A1.75 1.75 0 0016.25 5h-4.836a.25.25 0 01-.177-.073L9.823 3.513A1.75 1.75 0 008.586 3H3.75zM3.75 9A1.75 1.75 0 002 10.75v4.5c0 .966.784 1.75 1.75 1.75h12.5A1.75 1.75 0 0018 15.25v-4.5A1.75 1.75 0 0016.25 9H3.75z" />
+          </svg>
+        </button>
       </div>
+      {import.meta.env.DEV && (
+        <>
+          <hr className="border-white/10" />
+          <button
+            onClick={handleSaveAsDefaults}
+            className="w-full bg-yellow-600/60 hover:bg-yellow-600/80 text-white text-xs px-3 py-1.5 rounded transition-colors"
+          >
+            Save as defaults (dev)
+          </button>
+        </>
+      )}
+      <hr className="border-white/10" />
+      <RestoreDefaults />
+    </div>
+  );
+}
+
+/** Checkbox list of available monitors for multi-monitor overlay. */
+function MonitorSelection() {
+  const selectedMonitors = useOverlayStore((s) => s.selectedMonitors);
+  const setSelectedMonitors = useOverlayStore((s) => s.setSelectedMonitors);
+  const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    invoke<MonitorInfo[]>("list_monitors")
+      .then(setMonitors)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  async function handleToggle(id: string, checked: boolean) {
+    const next = checked
+      ? [...selectedMonitors, id]
+      : selectedMonitors.filter((m) => m !== id);
+
+    // Reconcile windows and prune disconnected monitors
+    const pruned = await syncMonitorWindows(next, monitors);
+    setSelectedMonitors(pruned);
+  }
+
+  if (monitors.length <= 1) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-white/70 text-xs font-medium">Multi-monitor overlay</h3>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="text-white/40 hover:text-white/70 text-xs transition-colors disabled:opacity-50"
+          title="Refresh monitors"
+        >
+          {loading ? "..." : "Refresh"}
+        </button>
+      </div>
+      <div className="space-y-1">
+        {monitors.map((m) => (
+          <label key={m.id} className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedMonitors.includes(m.id)}
+              onChange={(e) => handleToggle(m.id, e.target.checked)}
+              className="accent-blue-500"
+            />
+            <span>{m.name}</span>
+            <span className="text-white/40">
+              {m.width}x{m.height}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WidgetsTab() {
+  return (
+    <div className="space-y-3">
+      <WidgetPicker />
+      <hr className="border-white/10" />
+      <MonitorSelection />
+      <hr className="border-white/10" />
+      <PresetsSection />
+    </div>
+  );
+}
+
+function CommandsSection() {
+  const commands = useOverlayStore((s) => s.commands);
+  const setCommands = useOverlayStore((s) => s.setCommands);
+  const [newTrigger, setNewTrigger] = useState("");
+  const [newResponse, setNewResponse] = useState("");
+
+  function addCommand() {
+    const trigger = newTrigger.trim();
+    const response = newResponse.trim();
+    if (!trigger || !response) return;
+    setCommands([...commands, { trigger, response, enabled: true }]);
+    setNewTrigger("");
+    setNewResponse("");
+  }
+
+  function removeCommand(index: number) {
+    setCommands(commands.filter((_, i) => i !== index));
+  }
+
+  function toggleCommand(index: number) {
+    setCommands(commands.map((cmd, i) => i === index ? { ...cmd, enabled: !cmd.enabled } : cmd));
+  }
+
+  function updateCommand(index: number, partial: Partial<ChatCommand>) {
+    setCommands(commands.map((cmd, i) => i === index ? { ...cmd, ...partial } : cmd));
+  }
+
+  return (
+    <div className="space-y-2">
+      <h3 className="text-white/70 text-xs font-medium">Chat commands</h3>
+      <div className="space-y-1.5 max-h-32 overflow-y-auto">
+        {commands.map((cmd, i) => (
+          <div key={i} className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={cmd.enabled}
+              onChange={() => toggleCommand(i)}
+              className="accent-blue-500 shrink-0"
+            />
+            <input
+              type="text"
+              value={cmd.trigger}
+              onChange={(e) => updateCommand(i, { trigger: e.target.value })}
+              className="w-16 bg-white/10 text-white rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+            />
+            <input
+              type="text"
+              value={cmd.response}
+              onChange={(e) => updateCommand(i, { response: e.target.value })}
+              className="flex-1 bg-white/10 text-white rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+            />
+            <button
+              onClick={() => removeCommand(i)}
+              className="text-red-400 hover:text-red-300 shrink-0"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-1">
+        <input
+          type="text"
+          value={newTrigger}
+          onChange={(e) => setNewTrigger(e.target.value)}
+          placeholder="!trigger"
+          className="w-16 bg-white/10 text-white text-xs rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+        />
+        <input
+          type="text"
+          value={newResponse}
+          onChange={(e) => setNewResponse(e.target.value)}
+          placeholder="Response text ({uptime}, {game}...)"
+          className="flex-1 bg-white/10 text-white text-xs rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+        />
+        <button
+          onClick={addCommand}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-0.5 rounded transition-colors"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TwitchTab() {
+  return (
+    <div className="space-y-3">
+      <AuthSection />
+      <hr className="border-white/10" />
+      <ChannelSection />
+      <hr className="border-white/10" />
+      <CommandsSection />
+    </div>
+  );
+}
+
+/** Event types that support sound alerts. */
+const SOUND_EVENT_TYPES = ["follow", "raid", "subscribe", "gift_sub"] as const;
+
+/** Human-readable labels for sound event types. */
+const EVENT_LABELS: Record<string, string> = {
+  follow: "Follow",
+  raid: "Raid",
+  subscribe: "Subscribe",
+  gift_sub: "Gift sub",
+};
+
+/** Pick a custom audio file via the Tauri file dialog. */
+async function pickCustomSound(): Promise<string | null> {
+  const result = await open({
+    multiple: false,
+    filters: [{ name: "Audio", extensions: ["mp3", "wav", "ogg", "flac", "m4a"] }],
+  });
+  if (typeof result === "string") return result;
+  return result ?? null;
+}
+
+/** Return a display label for a sound value (built-in name or file basename). */
+function soundLabel(sound: string): string {
+  if (BUILTIN_SOUNDS.includes(sound as BuiltinSound)) {
+    return BUILTIN_SOUND_LABELS[sound as BuiltinSound];
+  }
+  // Custom file — show just the filename
+  const parts = sound.replace(/\\/g, "/").split("/");
+  return parts[parts.length - 1] ?? sound;
+}
+
+function SoundMappingRow({ eventType }: { eventType: string }) {
+  const soundMappings = useOverlayStore((s) => s.soundMappings);
+  const setSoundMappings = useOverlayStore((s) => s.setSoundMappings);
+  const soundVolume = useOverlayStore((s) => s.soundVolume);
+
+  const mapping: SoundMapping = soundMappings[eventType] ?? DEFAULT_SOUND_MAPPINGS[eventType] ?? { enabled: false, sound: "chime" };
+
+  function updateMapping(partial: Partial<SoundMapping>) {
+    setSoundMappings({ ...soundMappings, [eventType]: { ...mapping, ...partial } });
+  }
+
+  function handleSoundChange(value: string) {
+    if (value === "__custom__") {
+      pickCustomSound()
+        .then((path) => {
+          if (path) updateMapping({ sound: convertFileSrc(path) });
+        })
+        .catch(console.error);
+      return;
+    }
+    updateMapping({ sound: value });
+  }
+
+  function handlePreview() {
+    playSound(mapping.sound, soundVolume);
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      <input
+        type="checkbox"
+        checked={mapping.enabled}
+        onChange={() => updateMapping({ enabled: !mapping.enabled })}
+        className="accent-blue-500 shrink-0"
+      />
+      <span className="text-white/70 w-16 shrink-0">{EVENT_LABELS[eventType] ?? eventType}</span>
+      <select
+        value={BUILTIN_SOUNDS.includes(mapping.sound as BuiltinSound) ? mapping.sound : "__custom_selected__"}
+        onChange={(e) => handleSoundChange(e.target.value)}
+        className="flex-1 bg-white/10 text-white rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+      >
+        {BUILTIN_SOUNDS.map((s) => (
+          <option key={s} value={s}>{BUILTIN_SOUND_LABELS[s]}</option>
+        ))}
+        {!BUILTIN_SOUNDS.includes(mapping.sound as BuiltinSound) && (
+          <option value="__custom_selected__">{soundLabel(mapping.sound)}</option>
+        )}
+        <option value="__custom__">Browse…</option>
+      </select>
+      <button
+        onClick={handlePreview}
+        className="text-white/50 hover:text-white/80 transition-colors shrink-0"
+        title="Preview sound"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+          <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.841z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function AppearanceTab() {
+  const twitchColours = useOverlayStore((s) => s.twitchColours);
+  const toggleTwitchColours = useOverlayStore((s) => s.toggleTwitchColours);
+  const presenceThreshold = useOverlayStore((s) => s.presenceThreshold);
+  const setPresenceThreshold = useOverlayStore((s) => s.setPresenceThreshold);
+  const soundEnabled = useOverlayStore((s) => s.soundEnabled);
+  const toggleSoundEnabled = useOverlayStore((s) => s.toggleSoundEnabled);
+  const soundVolume = useOverlayStore((s) => s.soundVolume);
+  const setSoundVolume = useOverlayStore((s) => s.setSoundVolume);
+
+  return (
+    <div className="space-y-3">
+      <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={twitchColours}
+          onChange={toggleTwitchColours}
+          className="accent-blue-500"
+        />
+        Twitch name colours
+      </label>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60">Presence threshold</label>
+        <input
+          type="number"
+          value={presenceThreshold}
+          onChange={(e) => setPresenceThreshold(Number(e.target.value) || 1000)}
+          min={0}
+          className="w-20 bg-white/10 text-white text-xs rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
+        />
+      </div>
+      <hr className="border-white/10" />
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={soundEnabled}
+            onChange={toggleSoundEnabled}
+            className="accent-blue-500"
+          />
+          Sound alerts
+        </label>
+        {soundEnabled && (
+          <>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-white/60 shrink-0">Volume</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={soundVolume}
+                onChange={(e) => setSoundVolume(Number(e.target.value))}
+                className="flex-1 accent-blue-500"
+              />
+              <span className="text-xs text-white/50 w-7 text-right">{soundVolume}</span>
+            </div>
+            <div className="space-y-1">
+              {SOUND_EVENT_TYPES.map((eventType) => (
+                <SoundMappingRow key={eventType} eventType={eventType} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const TAB_COMPONENTS: Record<Tab, () => React.JSX.Element> = {
+  General: GeneralTab,
+  Widgets: WidgetsTab,
+  Twitch: TwitchTab,
+  Appearance: AppearanceTab,
+};
+
+export function SettingsWidget() {
+  const editMode = useOverlayStore((s) => s.editMode);
+  const [activeTab, setActiveTab] = useState<Tab>("General");
+
+  if (!editMode) return null;
+
+  const TabContent = TAB_COMPONENTS[activeTab];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[33vh] pointer-events-none">
+      <div className="w-80 pointer-events-auto">
+        <div className="h-full bg-black/60 rounded-lg backdrop-blur-sm p-4 space-y-3">
+          <h2 className="text-white text-sm font-semibold">Settings</h2>
+          <div className="flex gap-1">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  activeTab === tab
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white/80"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          <TabContent />
+        </div>
       </div>
     </div>
   );

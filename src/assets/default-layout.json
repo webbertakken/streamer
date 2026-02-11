@@ -1,0 +1,97 @@
+[
+  {
+    "height": 292,
+    "instanceId": "chat-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "chat",
+    "visible": true,
+    "width": 412,
+    "x": 7,
+    "y": 842
+  },
+  {
+    "height": 60,
+    "instanceId": "viewer-count-1",
+    "locked": true,
+    "opacity": 100,
+    "typeId": "viewer-count",
+    "visible": true,
+    "width": 200,
+    "x": 8,
+    "y": 754
+  },
+  {
+    "height": 566,
+    "instanceId": "chat-presence-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "chat-presence",
+    "visible": true,
+    "width": 149,
+    "x": 2394,
+    "y": 52
+  },
+  {
+    "config": {
+      "colour": "#ffffff",
+      "fontFamily": "sans-serif",
+      "fontSize": 24,
+      "text": "Press \"Ctrl + Shift + I\" for overlay Edit-mode.",
+      "textAlign": "center"
+    },
+    "height": 50,
+    "instanceId": "custom-text-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "custom-text",
+    "visible": true,
+    "width": 543,
+    "x": 1022,
+    "y": 93
+  },
+  {
+    "height": 215,
+    "instanceId": "event-log-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "event-log",
+    "visible": true,
+    "width": 415,
+    "x": 5,
+    "y": 1164
+  },
+  {
+    "height": 120,
+    "instanceId": "raid-alerts-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "raid-alerts",
+    "visible": true,
+    "width": 350,
+    "x": 1340,
+    "y": 1133
+  },
+  {
+    "height": 120,
+    "instanceId": "subscription-alerts-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "subscription-alerts",
+    "visible": true,
+    "width": 350,
+    "x": 936,
+    "y": 1133
+  },
+  {
+    "height": 120,
+    "instanceId": "follower-alerts-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "follower-alerts",
+    "visible": true,
+    "width": 350,
+    "x": 520,
+    "y": 1137
+  }
+]

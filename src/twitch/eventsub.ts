@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { publish } from "../events/bus";
 import type { ChannelEventType } from "../events/bus";
+import { useTwitchStore } from "../stores/twitch";
 
 const EVENTSUB_URL = "wss://eventsub.wss.twitch.tv/ws";
 const KEEPALIVE_BUFFER_MS = 5_000;
@@ -69,6 +70,8 @@ function handleMessage(event: MessageEvent<string>) {
     const serverTimeout: number | undefined = msg.payload.session.keepalive_timeout_seconds;
     if (serverTimeout) keepaliveTimeoutMs = serverTimeout * 1000;
 
+    useTwitchStore.getState().setEventSubConnected(true);
+
     // Subscribe to all events in parallel
     const subs = getSubscriptions();
     Promise.all(
@@ -117,6 +120,7 @@ function connectToUrl(url: string) {
   socket.addEventListener("message", handleMessage);
 
   socket.addEventListener("close", () => {
+    useTwitchStore.getState().setEventSubConnected(false);
     if (keepaliveTimer) clearTimeout(keepaliveTimer);
     if (!suppressReconnect && broadcasterId) {
       // Reconnect after a short delay

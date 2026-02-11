@@ -93,7 +93,7 @@ Consumers subscribe to the bus:
 ### 7. Event log file writing via Rust
 
 A Tauri command `append_event_log(event: string)` appends a JSON line to a log file:
-- Default path: `{app_data_dir}/logs/{channel}-{date}.jsonl`
+- Default path: `~/.config/streamer/logs/{channel}-{date}.jsonl`
 - One file per channel per day, rotated automatically
 - The frontend calls this for every event from the bus
 - A settings toggle controls whether file logging is active (enabled by default)

@@ -24,6 +24,8 @@ export interface WidgetDefinition {
   singleton?: boolean;
   /** Default config for new instances of this widget type */
   defaultConfig?: Record<string, unknown>;
+  /** Optional settings component rendered in the per-widget settings popover */
+  settingsComponent?: ComponentType<{ instanceId: string }>;
 }
 
 const widgets = new Map<string, WidgetDefinition>();
@@ -48,16 +50,22 @@ import { ChatWidget } from "./chat/ChatWidget";
 import { ViewerCountWidget } from "./viewer-count/ViewerCountWidget";
 import { FollowerAlertWidget } from "./follower-alerts/FollowerAlertWidget";
 import { EventFeedWidget } from "./event-feed/EventFeedWidget";
-import { CustomTextWidget } from "./custom-text/CustomTextWidget";
+import { CustomTextWidget, CustomTextSettings } from "./custom-text/CustomTextWidget";
 import { ChatPresenceWidget } from "./chat-presence/ChatPresenceWidget";
 import { FollowEventsWidget } from "./follow-events/FollowEventsWidget";
 import { EventLogWidget } from "./event-log/EventLogWidget";
+import { RaidAlertWidget } from "./raid-alerts/RaidAlertWidget";
+import { SubAlertWidget } from "./subscription-alerts/SubAlertWidget";
+import { StreamInfoWidget, StreamInfoSettings } from "./stream-info/StreamInfoWidget";
 
 registerWidget({ id: "chat", name: "Chat", component: ChatWidget, singleton: true, defaults: { x: 7, y: 842, width: 412, height: 292 } });
 registerWidget({ id: "viewer-count", name: "Viewer count", component: ViewerCountWidget, singleton: true, defaults: { x: 1189, y: 27, width: 200, height: 60 } });
 registerWidget({ id: "follower-alerts", name: "Follower alerts", component: FollowerAlertWidget, singleton: true, defaults: { x: 1115, y: 997, width: 350, height: 120 } });
 registerWidget({ id: "event-feed", name: "Event feed", component: EventFeedWidget, singleton: true, defaults: { x: 2254, y: 896, width: 295, height: 268 } });
-registerWidget({ id: "custom-text", name: "Custom text", component: CustomTextWidget, defaults: { x: 1022, y: 93, width: 543, height: 50 }, defaultConfig: { text: "Welcome to the stream!", fontSize: 24, colour: "#ffffff", fontFamily: "sans-serif", textAlign: "center" } });
+registerWidget({ id: "custom-text", name: "Custom text", component: CustomTextWidget, defaults: { x: 1022, y: 93, width: 543, height: 50 }, defaultConfig: { text: "Welcome to the stream!", fontSize: 24, colour: "#ffffff", fontFamily: "sans-serif", textAlign: "center" }, settingsComponent: CustomTextSettings });
 registerWidget({ id: "chat-presence", name: "Chat presence", component: ChatPresenceWidget, singleton: true, defaults: { x: 2394, y: 52, width: 149, height: 566 } });
 registerWidget({ id: "follow-events", name: "Follow events", component: FollowEventsWidget, singleton: true, defaults: { x: 2253, y: 644, width: 294, height: 221 } });
 registerWidget({ id: "event-log", name: "Event log", component: EventLogWidget, singleton: true, defaults: { x: 5, y: 1164, width: 415, height: 215 } });
+registerWidget({ id: "raid-alerts", name: "Raid alerts", component: RaidAlertWidget, singleton: true, defaults: { x: 1115, y: 877, width: 350, height: 120 } });
+registerWidget({ id: "subscription-alerts", name: "Subscription alerts", component: SubAlertWidget, singleton: true, defaults: { x: 1115, y: 757, width: 350, height: 120 } });
+registerWidget({ id: "stream-info", name: "Stream info", component: StreamInfoWidget, defaults: { x: 1189, y: 100, width: 300, height: 150 }, defaultConfig: { showTitle: true, showGame: true, showUptime: true, showViewers: false }, settingsComponent: StreamInfoSettings });
