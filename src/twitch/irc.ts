@@ -210,8 +210,8 @@ function handleMessage(event: MessageEvent<string>) {
         });
       }
 
-      // Always process commands (including our own messages sent from the widget)
-      handleChatCommand(parsed.text);
+      // Only process commands from other users (own messages handled in sendChatMessage)
+      if (!isOwnEcho) handleChatCommand(parsed.text);
       continue;
     }
 
@@ -305,6 +305,8 @@ export function sendChatMessage(text: string): void {
     text,
     timestamp: Date.now(),
   });
+
+  handleChatCommand(text);
 }
 
 /** Disconnect from Twitch chat. */
