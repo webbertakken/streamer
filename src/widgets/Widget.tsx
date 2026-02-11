@@ -28,8 +28,9 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
 
   const handleDragMove = (e: React.PointerEvent) => {
     if (!dragRef.current) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
+    const snap = 8;
+    const dx = Math.round((e.clientX - dragRef.current.startX) / snap) * snap;
+    const dy = Math.round((e.clientY - dragRef.current.startY) / snap) * snap;
     updateInstance(instanceId, { x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
   };
 
@@ -47,11 +48,12 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
 
   const handleResizeMove = (e: React.PointerEvent) => {
     if (!resizeRef.current) return;
-    const dx = e.clientX - resizeRef.current.startX;
-    const dy = e.clientY - resizeRef.current.startY;
+    const snap = 8;
+    const dx = Math.round((e.clientX - resizeRef.current.startX) / snap) * snap;
+    const dy = Math.round((e.clientY - resizeRef.current.startY) / snap) * snap;
     updateInstance(instanceId, {
-      width: Math.max(100, resizeRef.current.origW + dx),
-      height: Math.max(50, resizeRef.current.origH + dy),
+      width: Math.max(96, resizeRef.current.origW + dx),
+      height: Math.max(48, resizeRef.current.origH + dy),
     });
   };
 
