@@ -5,6 +5,7 @@ import { getWidget } from "./widgets/registry";
 import { useOverlayStore } from "./stores/overlay";
 import { useTwitchStore } from "./stores/twitch";
 import { hydrate, hydrateChatHistory, startAutoSave } from "./stores/persistence";
+import { startMessageExpiry, stopMessageExpiry } from "./widgets/chat/ChatWidget";
 import { checkAuth } from "./twitch/auth";
 import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
 import { startFollowerPolling, stopFollowerPolling, startViewerPolling, stopViewerPolling } from "./twitch/helix";
@@ -40,6 +41,7 @@ function App() {
         const { instances } = useOverlayStore.getState();
         if (instances.length === 0) seedIfNeeded();
         startAutoSave();
+        startMessageExpiry();
         useOverlayStore.getState().setHydrated(true);
         return checkAuth().then(() => hydrateChatHistory());
       })
@@ -49,6 +51,7 @@ function App() {
     const unsubSoundAlerts = initSoundAlerts();
     return () => {
       stopFileLogger();
+      stopMessageExpiry();
       unsubSoundAlerts();
     };
   }, [seedIfNeeded, isSecondary]);

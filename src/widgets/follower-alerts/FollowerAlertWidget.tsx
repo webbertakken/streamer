@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
+import { subscribe, type ChannelEvent } from "../../events/bus";
 
 export interface FollowerAlert {
   id: string;
@@ -34,6 +35,13 @@ function FollowerAlertContent() {
     listeners.add(check);
     return () => { listeners.delete(check); };
   }, [current, showNext]);
+
+  useEffect(() => {
+    return subscribe((event: ChannelEvent) => {
+      if (event.type !== "follow") return;
+      pushFollowerAlert(event.data.user_name as string);
+    });
+  }, []);
 
   if (!current) return <div className="h-full" />;
 
