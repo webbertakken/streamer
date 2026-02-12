@@ -5,6 +5,7 @@ import { getWidget } from "../widgets/registry";
 import type { SoundMapping } from "../audio/sounds";
 import {
   type ChatMessage,
+  MESSAGE_TTL_MS,
   getChatMessages,
   loadChatMessages,
   subscribeChatMessages,
@@ -114,7 +115,11 @@ export async function hydrateChatHistory(): Promise<void> {
   if (data.channel !== channel) return;
   if (Date.now() - data.savedAt > TEN_MINUTES) return;
 
-  loadChatMessages(data.messages);
+  const cutoff = Date.now() - MESSAGE_TTL_MS;
+  const fresh = data.messages.filter((m) => m.timestamp >= cutoff);
+  if (fresh.length === 0) return;
+
+  loadChatMessages(fresh);
 }
 
 function gatherState(): PersistedSettings {
