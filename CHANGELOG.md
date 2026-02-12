@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/webbertakken/streamer/compare/v0.4.0...v0.5.0) (2026-02-12)
+
+
+### Features
+
+* auto-expire chat messages after 60s and fix follower alerts ([#16](https://github.com/webbertakken/streamer/issues/16)) ([f315805](https://github.com/webbertakken/streamer/commit/f315805ed6643242c73b8f96fb5a938ca9d750ee))
+
 ## [0.4.0](https://github.com/webbertakken/streamer/compare/v0.3.1...v0.4.0) (2026-02-11)
 
 
