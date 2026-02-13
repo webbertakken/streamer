@@ -56,6 +56,63 @@ pub async fn helix_get(
     }
 }
 
+/// Generic authenticated PATCH to a Helix endpoint.
+/// Returns the raw JSON response body as a string.
+#[tauri::command]
+pub async fn helix_patch(
+    path: String,
+    body: String,
+    state: tauri::State<'_, Arc<AuthState>>,
+) -> Result<String, String> {
+    let url = if path.starts_with("https://") {
+        path.clone()
+    } else {
+        format!("https://api.twitch.tv/helix{path}")
+    };
+
+    // First attempt
+    let data = get_valid_token(&state).await?;
+    let resp = state
+        .inner()
+        .http()
+        .patch(&url)
+        .header("Client-Id", CLIENT_ID)
+        .header("Authorization", format!("Bearer {}", data.access_token))
+        .header("Content-Type", "application/json")
+        .body(body.clone())
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if resp.status().as_u16() == 401 {
+        // Token might have just expired — refresh and retry once
+        let data = get_valid_token(&state).await?;
+        let resp = state
+            .inner()
+            .http()
+            .patch(&url)
+            .header("Client-Id", CLIENT_ID)
+            .header("Authorization", format!("Bearer {}", data.access_token))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.status().is_success() {
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("Helix PATCH failed: {body}"));
+        }
+
+        resp.text().await.map_err(|e| e.to_string())
+    } else if !resp.status().is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        Err(format!("Helix PATCH failed: {body}"))
+    } else {
+        resp.text().await.map_err(|e| e.to_string())
+    }
+}
+
 #[derive(Deserialize)]
 pub struct EventSubSubscribeRequest {
     pub session_id: String,

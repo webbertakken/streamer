@@ -13,6 +13,12 @@ export interface WidgetInstance {
   visible: boolean;
   locked: boolean;
   opacity: number;
+  contentAlign?: "left" | "center" | "right";
+  fontFamily?: string;
+  bgColour?: string;
+  bgOpacity?: number;
+  textColour?: string;
+  liveBg?: boolean;
   config?: Record<string, unknown>;
 }
 
@@ -32,6 +38,10 @@ interface OverlayStore {
   toggleOverlayVisible: () => void;
   editMode: boolean;
   toggleEditMode: () => void;
+  dragging: boolean;
+  setDragging: (dragging: boolean) => void;
+  previewBg: boolean;
+  setPreviewBg: (preview: boolean) => void;
   hydrated: boolean;
   setHydrated: (hydrated: boolean) => void;
   instances: WidgetInstance[];
@@ -55,6 +65,27 @@ interface OverlayStore {
   setSoundMappings: (mappings: Record<string, SoundMapping>) => void;
   selectedMonitors: string[];
   setSelectedMonitors: (monitors: string[]) => void;
+  borderRadius: number;
+  setBorderRadius: (px: number) => void;
+  panelWidth: number;
+  setPanelWidth: (px: number) => void;
+  panelBgColour: string;
+  setPanelBgColour: (colour: string) => void;
+  panelBgOpacity: number;
+  setPanelBgOpacity: (opacity: number) => void;
+  panelAlignH: "left" | "center" | "right";
+  panelAlignV: "top" | "center" | "bottom";
+  setPanelAlign: (h: "left" | "center" | "right", v: "top" | "center" | "bottom") => void;
+  globalFont: string;
+  setGlobalFont: (font: string) => void;
+  widgetBgColour: string;
+  setWidgetBgColour: (colour: string) => void;
+  widgetBgOpacity: number;
+  setWidgetBgOpacity: (opacity: number) => void;
+  widgetTextColour: string;
+  setWidgetTextColour: (colour: string) => void;
+  widgetLiveBg: boolean;
+  toggleWidgetLiveBg: () => void;
   restoreDefaults: () => void;
 }
 
@@ -97,11 +128,16 @@ function seedInstances(): WidgetInstance[] {
 
 let seeded = false;
 
-export const useOverlayStore = create<OverlayStore>((set, get) => ({
+function createOverlayStore() {
+  return create<OverlayStore>((set, get) => ({
   overlayVisible: true,
   toggleOverlayVisible: () => set((s) => ({ overlayVisible: !s.overlayVisible })),
   editMode: false,
   toggleEditMode: () => set((s) => ({ editMode: !s.editMode })),
+  dragging: false,
+  setDragging: (dragging) => set({ dragging }),
+  previewBg: false,
+  setPreviewBg: (preview) => set({ previewBg: preview }),
   hydrated: false,
   setHydrated: (hydrated) => set({ hydrated }),
   instances: [],
@@ -146,5 +182,35 @@ export const useOverlayStore = create<OverlayStore>((set, get) => ({
   setSoundMappings: (mappings) => set({ soundMappings: mappings }),
   selectedMonitors: [],
   setSelectedMonitors: (monitors) => set({ selectedMonitors: monitors }),
-  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: true, presenceThreshold: 1000, commands: [...DEFAULT_COMMANDS], soundEnabled: true, soundVolume: 80, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [] }),
-}));
+  borderRadius: 8,
+  setBorderRadius: (px) => set({ borderRadius: px }),
+  panelWidth: 320,
+  setPanelWidth: (px) => set({ panelWidth: px }),
+  panelBgColour: "#000000",
+  setPanelBgColour: (colour) => set({ panelBgColour: colour }),
+  panelBgOpacity: 60,
+  setPanelBgOpacity: (opacity) => set({ panelBgOpacity: opacity }),
+  panelAlignH: "center",
+  panelAlignV: "center",
+  setPanelAlign: (h, v) => set({ panelAlignH: h, panelAlignV: v }),
+  globalFont: "inherit",
+  setGlobalFont: (font) => set({ globalFont: font }),
+  widgetBgColour: "#000000",
+  setWidgetBgColour: (colour) => set({ widgetBgColour: colour }),
+  widgetBgOpacity: 30,
+  setWidgetBgOpacity: (opacity) => set({ widgetBgOpacity: opacity }),
+  widgetTextColour: "#ffffff",
+  setWidgetTextColour: (colour) => set({ widgetTextColour: colour }),
+  widgetLiveBg: false,
+  toggleWidgetLiveBg: () => set((s) => ({ widgetLiveBg: !s.widgetLiveBg })),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: true, presenceThreshold: 1000, commands: [...DEFAULT_COMMANDS], soundEnabled: true, soundVolume: 80, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [], borderRadius: 8, panelWidth: 320, panelBgColour: "#000000", panelBgOpacity: 60, panelAlignH: "center" as const, panelAlignV: "center" as const, globalFont: "inherit", widgetBgColour: "#000000", widgetBgOpacity: 30, widgetTextColour: "#ffffff", widgetLiveBg: false }),
+  }));
+}
+
+export const useOverlayStore: ReturnType<typeof createOverlayStore> =
+  (import.meta.hot?.data?.overlayStore as ReturnType<typeof createOverlayStore>) ?? createOverlayStore();
+
+if (import.meta.hot) {
+  import.meta.hot.data.overlayStore = useOverlayStore;
+  import.meta.hot.accept();
+}

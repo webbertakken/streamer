@@ -105,3 +105,20 @@ export function stopViewerPolling(): void {
     viewerPollTimer = null;
   }
 }
+
+/** Fetch the current channel title for a broadcaster. */
+export async function fetchChannelTitle(broadcasterId: string): Promise<string> {
+  const raw: string = await invoke("helix_get", {
+    path: `/channels?broadcaster_id=${broadcasterId}`,
+  });
+  const resp = JSON.parse(raw);
+  return (resp.data?.[0]?.title as string) ?? "";
+}
+
+/** Update the channel title for a broadcaster. */
+export async function updateChannelTitle(broadcasterId: string, title: string): Promise<void> {
+  await invoke("helix_patch", {
+    path: `/channels?broadcaster_id=${broadcasterId}`,
+    body: JSON.stringify({ title }),
+  });
+}

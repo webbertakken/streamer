@@ -139,6 +139,7 @@ pub fn run() {
             auth::auth_logout,
             auth::auth_get_irc_token,
             helix::helix_get,
+            helix::helix_patch,
             helix::eventsub_subscribe,
             event_log::append_event_log,
             event_log::flush_event_log,
@@ -210,6 +211,27 @@ pub fn run() {
             }
 
             let window = app.get_webview_window("main").unwrap();
+
+            // Fit the window exactly to the primary monitor instead of using
+            // maximized (which adds invisible borders on Windows).
+            if let Some(monitor) = window.primary_monitor().map_err(|e| e.to_string())? {
+                let scale = monitor.scale_factor();
+                let phys_pos = monitor.position();
+                let phys_size = monitor.size();
+                window
+                    .set_position(tauri::Position::Logical(tauri::LogicalPosition::new(
+                        phys_pos.x as f64 / scale,
+                        phys_pos.y as f64 / scale,
+                    )))
+                    .map_err(|e| e.to_string())?;
+                window
+                    .set_size(tauri::Size::Logical(tauri::LogicalSize::new(
+                        phys_size.width as f64 / scale,
+                        phys_size.height as f64 / scale,
+                    )))
+                    .map_err(|e| e.to_string())?;
+            }
+
             window.set_ignore_cursor_events(true)?;
 
             app.manage(Arc::new(auth::AuthState::new(data_dir.clone())));

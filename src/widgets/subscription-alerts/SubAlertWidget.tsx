@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { subscribe, type ChannelEvent } from "../../events/bus";
+import { useOverlayStore } from "../../stores/overlay";
 
 export interface SubAlert {
   id: string;
@@ -32,6 +33,7 @@ function tierLabel(tier: string): string {
 }
 
 function SubAlertContent() {
+  const borderRadius = useOverlayStore((s) => s.borderRadius);
   const [current, setCurrent] = useState<SubAlert | null>(null);
 
   const showNext = useCallback(() => {
@@ -76,7 +78,8 @@ function SubAlertContent() {
     <div className="h-full flex items-center justify-center">
       <div
         key={current.id}
-        className="bg-gradient-to-r from-blue-600/80 to-cyan-500/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center animate-[alertIn_0.5s_ease-out]"
+        className="bg-gradient-to-r from-blue-600/80 to-cyan-500/80 backdrop-blur-sm px-6 py-4 text-center animate-[alertIn_0.5s_ease-out]"
+        style={{ borderRadius }}
       >
         <div className="text-white/80 text-sm font-medium">
           {current.isGift ? "Gift sub!" : "New subscriber!"}

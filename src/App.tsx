@@ -5,16 +5,40 @@ import { getWidget } from "./widgets/registry";
 import { useOverlayStore } from "./stores/overlay";
 import { useTwitchStore } from "./stores/twitch";
 import { hydrate, hydrateChatHistory, startAutoSave } from "./stores/persistence";
-import { startMessageExpiry, stopMessageExpiry } from "./widgets/chat/ChatWidget";
+import { startMessageExpiry, stopMessageExpiry } from "./widgets/chat/chat-state";
 import { checkAuth } from "./twitch/auth";
 import { connectEventSub, disconnectEventSub } from "./twitch/eventsub";
 import { startFollowerPolling, stopFollowerPolling, startViewerPolling, stopViewerPolling } from "./twitch/helix";
 import { startFileLogger, stopFileLogger } from "./events/file-logger";
 import { initCommandEventListeners } from "./twitch/irc";
+import { fetchBadges } from "./twitch/badges";
 import { initSoundAlerts } from "./audio/listener";
 import { useSecondaryWindow, startBroadcasting, stopBroadcasting, closeAllMonitorWindows } from "./multimonitor";
 import { SettingsWidget } from "./widgets/settings/SettingsWidget";
 import "./App.css";
+
+const MARGIN = 8;
+const GUIDE = "fixed pointer-events-none z-40";
+const GUIDE_COLOUR = "rgba(59,130,246,0.3)";
+
+/** Alignment guide lines shown during widget drag/resize. */
+function GuideLines() {
+  const dragging = useOverlayStore((s) => s.dragging);
+  if (!dragging) return null;
+
+  return (
+    <>
+      {/* Vertical: 8px from left, centre, 8px from right */}
+      <div className={GUIDE} style={{ left: MARGIN, top: 0, width: 1, height: "100vh", backgroundColor: GUIDE_COLOUR }} />
+      <div className={GUIDE} style={{ left: "50%", top: 0, width: 1, height: "100vh", backgroundColor: GUIDE_COLOUR }} />
+      <div className={GUIDE} style={{ right: MARGIN, top: 0, width: 1, height: "100vh", backgroundColor: GUIDE_COLOUR }} />
+      {/* Horizontal: 8px from top, centre, 8px from bottom */}
+      <div className={GUIDE} style={{ top: MARGIN, left: 0, height: 1, width: "100vw", backgroundColor: GUIDE_COLOUR }} />
+      <div className={GUIDE} style={{ top: "50%", left: 0, height: 1, width: "100vw", backgroundColor: GUIDE_COLOUR }} />
+      <div className={GUIDE} style={{ bottom: MARGIN, left: 0, height: 1, width: "100vw", backgroundColor: GUIDE_COLOUR }} />
+    </>
+  );
+}
 
 function App() {
   const isSecondary = useSecondaryWindow();
@@ -104,6 +128,8 @@ function App() {
         const resp = JSON.parse(raw as string);
         const userId: string | undefined = resp.data?.[0]?.id;
         if (userId) {
+          useTwitchStore.getState().setUserId(userId);
+          fetchBadges(userId).catch(console.error);
           connectEventSub(userId);
           startFollowerPolling(userId);
           startViewerPolling(userId);
@@ -124,9 +150,12 @@ function App() {
   return (
     <div className="h-screen w-screen relative">
       {editMode && !isSecondary && (
-        <div className="fixed top-2 right-2 z-50 bg-blue-600/80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-          Edit mode — Ctrl+Shift+I to exit
-        </div>
+        <>
+          <div className="fixed top-2 right-2 z-50 bg-blue-600/80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+            Edit mode — Ctrl+Shift+I to exit
+          </div>
+          <GuideLines />
+        </>
       )}
       {instances.map((inst) => {
         const def = getWidget(inst.typeId);

@@ -7,7 +7,7 @@ use tracing::{error, info, warn};
 
 const CLIENT_ID: &str = "yu2txwsc619qgqaghrv1xzf66swhad";
 const SCOPES: &str =
-    "chat:read chat:edit moderator:read:followers user:read:chat channel:read:subscriptions bits:read";
+    "chat:read chat:edit moderator:read:followers user:read:chat channel:read:subscriptions bits:read channel:manage:broadcast";
 
 /// Stored token data, serialised as JSON on disk.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Widget } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { subscribe, type ChannelEvent } from "../../events/bus";
+import { useOverlayStore } from "../../stores/overlay";
 
 export interface FollowerAlert {
   id: string;
@@ -18,6 +19,7 @@ export function pushFollowerAlert(username: string) {
 }
 
 function FollowerAlertContent() {
+  const borderRadius = useOverlayStore((s) => s.borderRadius);
   const [current, setCurrent] = useState<FollowerAlert | null>(null);
 
   const showNext = useCallback(() => {
@@ -49,7 +51,8 @@ function FollowerAlertContent() {
     <div className="h-full flex items-center justify-center">
       <div
         key={current.id}
-        className="bg-gradient-to-r from-purple-600/80 to-pink-500/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center animate-[alertIn_0.5s_ease-out]"
+        className="bg-gradient-to-r from-purple-600/80 to-pink-500/80 backdrop-blur-sm px-6 py-4 text-center animate-[alertIn_0.5s_ease-out]"
+        style={{ borderRadius }}
       >
         <div className="text-white/80 text-sm font-medium">New follower!</div>
         <div className="text-white text-xl font-bold mt-1">{current.username}</div>

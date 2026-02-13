@@ -9,7 +9,7 @@ import {
   getChatMessages,
   loadChatMessages,
   subscribeChatMessages,
-} from "../widgets/chat/ChatWidget";
+} from "../widgets/chat/chat-state";
 
 /** Old split format had widgetStates as a separate record */
 interface OldWidgetState {
@@ -21,6 +21,7 @@ interface OldWidgetState {
 }
 
 interface PersistedSettings {
+  _v?: number;
   overlay?: {
     instances: (WidgetInstance | { instanceId: string; typeId: string })[];
     widgetStates?: Record<string, OldWidgetState>;
@@ -32,6 +33,17 @@ interface PersistedSettings {
     soundVolume?: number;
     soundMappings?: Record<string, SoundMapping>;
     selectedMonitors?: string[];
+    borderRadius?: number;
+    panelWidth?: number;
+    panelBgColour?: string;
+    panelBgOpacity?: number;
+    panelAlignH?: "left" | "center" | "right";
+    panelAlignV?: "top" | "center" | "bottom";
+    globalFont?: string;
+    widgetBgColour?: string;
+    widgetBgOpacity?: number;
+    widgetTextColour?: string;
+    widgetLiveBg?: boolean;
   };
   twitch?: {
     channel: string;
@@ -79,6 +91,16 @@ export async function hydrate(): Promise<void> {
       if (inst.opacity === undefined) inst.opacity = 100;
     }
 
+    // Migrate v1: clear per-widget style overrides so they use new global defaults
+    if ((data._v ?? 0) < 1) {
+      for (const inst of instances) {
+        delete inst.bgColour;
+        delete inst.bgOpacity;
+        delete inst.textColour;
+        delete inst.liveBg;
+      }
+    }
+
     // Migrate legacy global customText config into custom-text instances that lack config
     if (data.customText?.config) {
       for (const inst of instances) {
@@ -98,6 +120,17 @@ export async function hydrate(): Promise<void> {
       ...(data.overlay.soundVolume !== undefined && { soundVolume: data.overlay.soundVolume }),
       ...(data.overlay.soundMappings && { soundMappings: data.overlay.soundMappings }),
       ...(data.overlay.selectedMonitors && { selectedMonitors: data.overlay.selectedMonitors }),
+      ...(data.overlay.borderRadius !== undefined && { borderRadius: data.overlay.borderRadius }),
+      ...(data.overlay.panelWidth !== undefined && { panelWidth: data.overlay.panelWidth }),
+      ...(data.overlay.panelBgColour !== undefined && { panelBgColour: data.overlay.panelBgColour }),
+      ...(data.overlay.panelBgOpacity !== undefined && { panelBgOpacity: data.overlay.panelBgOpacity }),
+      ...(data.overlay.panelAlignH && { panelAlignH: data.overlay.panelAlignH }),
+      ...(data.overlay.panelAlignV && { panelAlignV: data.overlay.panelAlignV }),
+      ...(data.overlay.globalFont !== undefined && { globalFont: data.overlay.globalFont }),
+      ...(data.overlay.widgetBgColour !== undefined && { widgetBgColour: data.overlay.widgetBgColour }),
+      ...(data.overlay.widgetBgOpacity !== undefined && { widgetBgOpacity: data.overlay.widgetBgOpacity }),
+      ...(data.overlay.widgetTextColour !== undefined && { widgetTextColour: data.overlay.widgetTextColour }),
+      ...(data.overlay.widgetLiveBg !== undefined && { widgetLiveBg: data.overlay.widgetLiveBg }),
     });
   }
 
@@ -127,6 +160,7 @@ function gatherState(): PersistedSettings {
   const twitch = useTwitchStore.getState();
 
   return {
+    _v: 1,
     overlay: {
       instances: overlay.instances,
       fileLogging: overlay.fileLogging,
@@ -137,6 +171,17 @@ function gatherState(): PersistedSettings {
       soundVolume: overlay.soundVolume,
       soundMappings: overlay.soundMappings,
       selectedMonitors: overlay.selectedMonitors,
+      borderRadius: overlay.borderRadius,
+      panelWidth: overlay.panelWidth,
+      panelBgColour: overlay.panelBgColour,
+      panelBgOpacity: overlay.panelBgOpacity,
+      panelAlignH: overlay.panelAlignH,
+      panelAlignV: overlay.panelAlignV,
+      globalFont: overlay.globalFont,
+      widgetBgColour: overlay.widgetBgColour,
+      widgetBgOpacity: overlay.widgetBgOpacity,
+      widgetTextColour: overlay.widgetTextColour,
+      widgetLiveBg: overlay.widgetLiveBg,
     },
     twitch: { channel: twitch.channel },
   };
@@ -145,6 +190,7 @@ function gatherState(): PersistedSettings {
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleSave(): void {
+  if (!useOverlayStore.getState().hydrated) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     invoke("write_settings", { data: gatherState() }).catch(console.error);

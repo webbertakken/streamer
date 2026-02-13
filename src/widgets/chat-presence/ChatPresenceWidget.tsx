@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { Widget } from "../Widget";
+import { Widget, useContentAlign, contentAlignClass } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { subscribe, type ChannelEvent } from "../../events/bus";
 import { useTwitchStore } from "../../stores/twitch";
@@ -48,12 +48,14 @@ function usePresence(): string[] {
   return Array.from(presenceSet).sort((a, b) => a.localeCompare(b));
 }
 
-function ChatPresenceContent() {
+function ChatPresenceContent({ instanceId }: { instanceId: string }) {
   const authenticated = useTwitchStore((s) => s.authenticated);
   const editMode = useOverlayStore((s) => s.editMode);
   const threshold = useOverlayStore((s) => s.presenceThreshold);
   const users = usePresence();
   const overThreshold = users.length > threshold;
+  const align = useContentAlign(instanceId);
+  const alignCls = contentAlignClass(align);
 
   useEffect(() => {
     if (!authenticated) {
@@ -83,12 +85,12 @@ function ChatPresenceContent() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-2 scrollbar-thin">
+    <div className={`h-full overflow-y-auto p-2 scrollbar-thin flex flex-col ${alignCls}`}>
       <div className={`text-white/60 text-xs mb-1 ${lineBg}`}>{users.length} in chat</div>
       {users.length === 0 ? (
         <p className={`text-white/40 text-sm italic ${lineBg}`}>No viewers tracked</p>
       ) : (
-        <div className="space-y-0.5">
+        <div className={`space-y-0.5 flex flex-col ${alignCls}`}>
           {users.map((u) => (
             <div key={u} className={`text-sm text-white/80 ${lineBg}`}>{u}</div>
           ))}
@@ -102,7 +104,7 @@ export function ChatPresenceWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Chat presence">
       <div className="h-full">
-        <ChatPresenceContent />
+        <ChatPresenceContent instanceId={instanceId} />
       </div>
     </Widget>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useOverlayStore, type ChatCommand } from "../../stores/overlay";
@@ -11,6 +11,7 @@ import { DEFAULT_SOUND_MAPPINGS, type SoundMapping } from "../../audio/sounds";
 import { playSound } from "../../audio/player";
 import { PresetsSection } from "./PresetsSection";
 import { type MonitorInfo, syncMonitorWindows } from "../../multimonitor";
+import { FontPicker } from "../shared/FontPicker";
 
 const TABS = ["General", "Widgets", "Twitch", "Appearance"] as const;
 type Tab = (typeof TABS)[number];
@@ -522,6 +523,25 @@ function AppearanceTab() {
   const toggleSoundEnabled = useOverlayStore((s) => s.toggleSoundEnabled);
   const soundVolume = useOverlayStore((s) => s.soundVolume);
   const setSoundVolume = useOverlayStore((s) => s.setSoundVolume);
+  const borderRadius = useOverlayStore((s) => s.borderRadius);
+  const setBorderRadius = useOverlayStore((s) => s.setBorderRadius);
+  const globalFont = useOverlayStore((s) => s.globalFont);
+  const setGlobalFont = useOverlayStore((s) => s.setGlobalFont);
+  const widgetBgColour = useOverlayStore((s) => s.widgetBgColour);
+  const setWidgetBgColour = useOverlayStore((s) => s.setWidgetBgColour);
+  const widgetBgOpacity = useOverlayStore((s) => s.widgetBgOpacity);
+  const setWidgetBgOpacity = useOverlayStore((s) => s.setWidgetBgOpacity);
+  const widgetTextColour = useOverlayStore((s) => s.widgetTextColour);
+  const setWidgetTextColour = useOverlayStore((s) => s.setWidgetTextColour);
+  const panelBgColour = useOverlayStore((s) => s.panelBgColour);
+  const setPanelBgColour = useOverlayStore((s) => s.setPanelBgColour);
+  const panelBgOpacity = useOverlayStore((s) => s.panelBgOpacity);
+  const setPanelBgOpacity = useOverlayStore((s) => s.setPanelBgOpacity);
+  const panelAlignH = useOverlayStore((s) => s.panelAlignH);
+  const panelAlignV = useOverlayStore((s) => s.panelAlignV);
+  const setPanelAlign = useOverlayStore((s) => s.setPanelAlign);
+  const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg);
+  const toggleWidgetLiveBg = useOverlayStore((s) => s.toggleWidgetLiveBg);
 
   return (
     <div className="space-y-3">
@@ -543,6 +563,107 @@ function AppearanceTab() {
           min={0}
           className="w-20 bg-white/10 text-white text-xs rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
         />
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Rounded corners</label>
+        <input
+          type="range"
+          min={0}
+          max={24}
+          value={borderRadius}
+          onChange={(e) => setBorderRadius(Number(e.target.value))}
+          className="flex-1 accent-blue-500"
+        />
+        <span className="text-xs text-white/50 w-7 text-right">{borderRadius}</span>
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs text-white/60 block">Font</label>
+        <FontPicker value={globalFont} onChange={setGlobalFont} />
+      </div>
+      <hr className="border-white/10" />
+      <h3 className="text-white/70 text-xs font-medium">Widget content</h3>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Background</label>
+        <input
+          type="color"
+          value={widgetBgColour}
+          onChange={(e) => setWidgetBgColour(e.target.value)}
+          className="w-6 h-6 rounded border border-white/20 cursor-pointer bg-transparent"
+        />
+        <span className="text-xs text-white/40">{widgetBgColour}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">BG opacity</label>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={widgetBgOpacity}
+          onChange={(e) => setWidgetBgOpacity(Number(e.target.value))}
+          onPointerDown={() => useOverlayStore.getState().setPreviewBg(true)}
+          onPointerUp={() => useOverlayStore.getState().setPreviewBg(false)}
+          onLostPointerCapture={() => useOverlayStore.getState().setPreviewBg(false)}
+          className="flex-1 accent-blue-500"
+        />
+        <span className="text-xs text-white/50 w-7 text-right">{widgetBgOpacity}%</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Text colour</label>
+        <input
+          type="color"
+          value={widgetTextColour}
+          onChange={(e) => setWidgetTextColour(e.target.value)}
+          className="w-6 h-6 rounded border border-white/20 cursor-pointer bg-transparent"
+        />
+        <span className="text-xs text-white/40">{widgetTextColour}</span>
+      </div>
+      <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={widgetLiveBg}
+          onChange={toggleWidgetLiveBg}
+          className="accent-blue-500"
+        />
+        Show background in live mode
+      </label>
+      <hr className="border-white/10" />
+      <h3 className="text-white/70 text-xs font-medium">Panel background</h3>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Colour</label>
+        <input
+          type="color"
+          value={panelBgColour}
+          onChange={(e) => setPanelBgColour(e.target.value)}
+          className="w-6 h-6 rounded border border-white/20 cursor-pointer bg-transparent"
+        />
+        <span className="text-xs text-white/40">{panelBgColour}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Opacity</label>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={panelBgOpacity}
+          onChange={(e) => setPanelBgOpacity(Number(e.target.value))}
+          className="flex-1 accent-blue-500"
+        />
+        <span className="text-xs text-white/50 w-7 text-right">{panelBgOpacity}%</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Position</label>
+        <div className="grid grid-cols-3 gap-0.5">
+          {(["top", "center", "bottom"] as const).map((v) =>
+            (["left", "center", "right"] as const).map((h) => (
+              <button
+                key={`${v}-${h}`}
+                onClick={() => setPanelAlign(h, v)}
+                className={`w-4 h-4 rounded-sm transition-colors ${panelAlignH === h && panelAlignV === v ? "bg-blue-500" : "bg-white/15 hover:bg-white/30"}`}
+                title={`${v}-${h}`}
+              />
+            ))
+          )}
+        </div>
       </div>
       <hr className="border-white/10" />
       <div className="space-y-2">
@@ -588,18 +709,58 @@ const TAB_COMPONENTS: Record<Tab, () => React.JSX.Element> = {
   Appearance: AppearanceTab,
 };
 
+/** Convert a hex colour (#RRGGBB) + opacity (0-100) to an rgba string. */
+function hexToRgba(hex: string, opacity: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+}
+
 export function SettingsWidget() {
   const editMode = useOverlayStore((s) => s.editMode);
+  const panelWidth = useOverlayStore((s) => s.panelWidth);
+  const setPanelWidth = useOverlayStore((s) => s.setPanelWidth);
+  const panelBgColour = useOverlayStore((s) => s.panelBgColour);
+  const panelBgOpacity = useOverlayStore((s) => s.panelBgOpacity);
+  const panelAlignH = useOverlayStore((s) => s.panelAlignH);
+  const panelAlignV = useOverlayStore((s) => s.panelAlignV);
+  const borderRadius = useOverlayStore((s) => s.borderRadius);
   const [activeTab, setActiveTab] = useState<Tab>("General");
+  const resizeRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  useEffect(() => {
+    function onMove(e: PointerEvent) {
+      if (!resizeRef.current) return;
+      const delta = e.clientX - resizeRef.current.startX;
+      const next = Math.max(260, Math.min(600, resizeRef.current.startW + delta * 2));
+      setPanelWidth(next);
+    }
+    function onUp() {
+      resizeRef.current = null;
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, [setPanelWidth]);
 
   if (!editMode) return null;
 
   const TabContent = TAB_COMPONENTS[activeTab];
 
+  const justifyClass = { left: "justify-start", center: "justify-center", right: "justify-end" }[panelAlignH];
+  const alignClass = { top: "items-start", center: "items-center", bottom: "items-end" }[panelAlignV];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[33vh] pointer-events-none">
-      <div className="w-80 pointer-events-auto">
-        <div className="h-full bg-black/60 rounded-lg backdrop-blur-sm p-4 space-y-3">
+    <div className={`fixed inset-0 z-50 flex ${justifyClass} ${alignClass} p-8 pointer-events-none`}>
+      <div className="pointer-events-auto relative" style={{ width: panelWidth }}>
+        <div
+          className="h-full backdrop-blur-sm p-4 space-y-3"
+          style={{ backgroundColor: hexToRgba(panelBgColour, panelBgOpacity), borderRadius }}
+        >
           <h2 className="text-white text-sm font-semibold">Settings</h2>
           <div className="flex gap-1">
             {TABS.map((tab) => (
@@ -618,6 +779,14 @@ export function SettingsWidget() {
           </div>
           <TabContent />
         </div>
+        {/* Right-edge resize handle */}
+        <div
+          className="absolute top-0 -right-1 w-2 h-full cursor-ew-resize hover:bg-blue-500/30 rounded-r transition-colors"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            resizeRef.current = { startX: e.clientX, startW: panelWidth };
+          }}
+        />
       </div>
     </div>
   );
