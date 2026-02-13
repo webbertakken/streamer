@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/webbertakken/streamer/compare/v0.5.0...v0.6.0) (2026-02-13)
+
+
+### Features
+
+* stream title, global styling, chat badges, and content alignment ([#18](https://github.com/webbertakken/streamer/issues/18)) ([6e197d9](https://github.com/webbertakken/streamer/commit/6e197d9f9f63d60742ff86111da654369eacd0ea))
+
 ## [0.5.0](https://github.com/webbertakken/streamer/compare/v0.4.0...v0.5.0) (2026-02-12)
 
 
