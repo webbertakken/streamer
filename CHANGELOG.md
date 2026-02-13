@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/webbertakken/streamer/compare/v0.6.1...v0.7.0) (2026-02-13)
+
+
+### Features
+
+* better defaults ([#22](https://github.com/webbertakken/streamer/issues/22)) ([1c441bb](https://github.com/webbertakken/streamer/commit/1c441bb63a83592a6ab8036e62002df6b87f3cca))
+
 ## [0.6.1](https://github.com/webbertakken/streamer/compare/v0.6.0...v0.6.1) (2026-02-13)
 
 
