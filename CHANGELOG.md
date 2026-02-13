@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/webbertakken/streamer/compare/v0.6.0...v0.6.1) (2026-02-13)
+
+
+### Maintenance
+
+* simplify opacity settings and remove liveBg toggle ([#20](https://github.com/webbertakken/streamer/issues/20)) ([e9ecea4](https://github.com/webbertakken/streamer/commit/e9ecea4d328bb2ce51e88890073490cb6c36d2e9))
+
 ## [0.6.0](https://github.com/webbertakken/streamer/compare/v0.5.0...v0.6.0) (2026-02-13)
 
 
