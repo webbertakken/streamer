@@ -7,41 +7,41 @@
     "typeId": "chat",
     "visible": true,
     "width": 412,
-    "x": 7,
-    "y": 842
+    "x": 2140,
+    "y": 778
   },
   {
     "height": 60,
     "instanceId": "viewer-count-1",
-    "locked": true,
+    "locked": false,
     "opacity": 100,
     "typeId": "viewer-count",
     "visible": true,
     "width": 200,
-    "x": 8,
-    "y": 754
+    "x": 1056,
+    "y": 1186
   },
   {
-    "height": 566,
+    "height": 502,
     "instanceId": "chat-presence-1",
     "locked": false,
     "opacity": 100,
     "typeId": "chat-presence",
     "visible": true,
-    "width": 149,
-    "x": 2394,
-    "y": 52
+    "width": 197,
+    "x": 2355,
+    "y": 239
   },
   {
     "height": 120,
     "instanceId": "raid-alerts-1",
     "locked": false,
-    "opacity": 100,
+    "opacity": 54,
     "typeId": "raid-alerts",
     "visible": true,
     "width": 350,
-    "x": 1051,
-    "y": 1134
+    "x": 1280,
+    "y": 1112
   },
   {
     "height": 120,
@@ -51,8 +51,8 @@
     "typeId": "subscription-alerts",
     "visible": true,
     "width": 350,
-    "x": 1596,
-    "y": 1132
+    "x": 1280,
+    "y": 1248
   },
   {
     "height": 120,
@@ -62,7 +62,49 @@
     "typeId": "follower-alerts",
     "visible": true,
     "width": 350,
-    "x": 520,
-    "y": 1137
+    "x": 1632,
+    "y": 1248
+  },
+  {
+    "height": 120,
+    "instanceId": "follow-events-1",
+    "locked": false,
+    "opacity": 100,
+    "typeId": "follow-events",
+    "visible": true,
+    "width": 352,
+    "x": 1984,
+    "y": 1248
+  },
+  {
+    "height": 272,
+    "instanceId": "event-feed-1",
+    "locked": true,
+    "opacity": 100,
+    "typeId": "event-feed",
+    "visible": true,
+    "width": 296,
+    "x": 2256,
+    "y": 1112
+  },
+  {
+    "config": {
+      "alignH": "center",
+      "alignV": "center",
+      "backgroundColour": "#0b0a0a",
+      "fontFamily": "Cascadia Code",
+      "fontSize": 24,
+      "showOutsideEditMode": true,
+      "textColour": "#ff0050"
+    },
+    "height": 72,
+    "instanceId": "stream-title-1",
+    "locked": false,
+    "opacity": 75,
+    "typeId": "stream-title",
+    "visible": true,
+    "width": 928,
+    "x": 816,
+    "y": 80
   }
 ]

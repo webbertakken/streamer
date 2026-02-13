@@ -105,6 +105,32 @@ fn write_default_layout(data: String) -> Result<(), String> {
     }
 }
 
+#[tauri::command]
+#[allow(unused_variables)]
+fn write_default_settings(data: String) -> Result<(), String> {
+    #[cfg(not(debug_assertions))]
+    return Err("Only available in development builds".to_string());
+
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|_| "CARGO_MANIFEST_DIR not set".to_string())?;
+        let project_root = std::path::Path::new(&manifest_dir)
+            .parent()
+            .ok_or("Could not determine project root")?;
+        let target = project_root
+            .join("src")
+            .join("assets")
+            .join("default-settings.json");
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        std::fs::write(&target, &data).map_err(|e| e.to_string())?;
+        tracing::info!("Wrote default settings to: {}", target.display());
+        Ok(())
+    }
+}
+
 /// Open the application log folder in the system file explorer.
 #[tauri::command]
 fn open_log_folder() -> Result<(), String> {
@@ -139,6 +165,7 @@ pub fn run() {
             auth::auth_logout,
             auth::auth_get_irc_token,
             helix::helix_get,
+            helix::helix_patch,
             helix::eventsub_subscribe,
             event_log::append_event_log,
             event_log::flush_event_log,
@@ -147,6 +174,7 @@ pub fn run() {
             settings::read_chat_history,
             settings::write_chat_history,
             write_default_layout,
+            write_default_settings,
             open_log_folder,
             presets::list_presets,
             presets::save_preset,
@@ -210,6 +238,27 @@ pub fn run() {
             }
 
             let window = app.get_webview_window("main").unwrap();
+
+            // Fit the window exactly to the primary monitor instead of using
+            // maximized (which adds invisible borders on Windows).
+            if let Some(monitor) = window.primary_monitor().map_err(|e| e.to_string())? {
+                let scale = monitor.scale_factor();
+                let phys_pos = monitor.position();
+                let phys_size = monitor.size();
+                window
+                    .set_position(tauri::Position::Logical(tauri::LogicalPosition::new(
+                        phys_pos.x as f64 / scale,
+                        phys_pos.y as f64 / scale,
+                    )))
+                    .map_err(|e| e.to_string())?;
+                window
+                    .set_size(tauri::Size::Logical(tauri::LogicalSize::new(
+                        phys_size.width as f64 / scale,
+                        phys_size.height as f64 / scale,
+                    )))
+                    .map_err(|e| e.to_string())?;
+            }
+
             window.set_ignore_cursor_events(true)?;
 
             app.manage(Arc::new(auth::AuthState::new(data_dir.clone())));

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { pushChatMessage } from "../widgets/chat/ChatWidget";
+import { pushChatMessage } from "../widgets/chat/chat-state";
 import { useTwitchStore } from "../stores/twitch";
 import { useOverlayStore } from "../stores/overlay";
 import { publish, subscribe as subscribeBus } from "../events/bus";
@@ -115,7 +115,7 @@ function handleChatCommand(text: string): void {
 }
 
 /** Parse a PRIVMSG IRC line into a chat message, or null if not parseable. */
-function parsePRIVMSG(raw: string): { username: string; colour: string; text: string } | null {
+function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; badges: Array<{ setId: string; versionId: string }> } | null {
   const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
   const tags = tagEnd > 0 ? raw.slice(1, tagEnd) : "";
   const rest = tagEnd > 0 ? raw.slice(tagEnd + 1) : raw;
@@ -131,6 +131,7 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
 
   let displayName = "";
   let colour = "";
+  let badges: Array<{ setId: string; versionId: string }> = [];
   for (const pair of tags.split(";")) {
     const eq = pair.indexOf("=");
     if (eq === -1) continue;
@@ -138,6 +139,12 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
     const value = pair.slice(eq + 1);
     if (key === "display-name") displayName = value;
     else if (key === "color") colour = value;
+    else if (key === "badges" && value) {
+      badges = value.split(",").filter(Boolean).map((entry) => {
+        const [setId, versionId] = entry.split("/");
+        return { setId, versionId };
+      });
+    }
   }
 
   if (!displayName) {
@@ -147,7 +154,7 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
 
   if (!displayName) return null;
 
-  return { username: displayName, colour: colour || "#FFFFFF", text };
+  return { username: displayName, colour: colour || "#FFFFFF", text, badges };
 }
 
 /** Parse a JOIN or PART line, returning the username or null. */
@@ -200,6 +207,7 @@ function handleMessage(event: MessageEvent<string>) {
           username: parsed.username,
           colour: parsed.colour,
           text: parsed.text,
+          badges: parsed.badges,
           timestamp: Date.now(),
         };
         pushChatMessage(msg);

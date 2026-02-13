@@ -1,17 +1,8 @@
 import { useEffect, useReducer, useRef } from "react";
-import { Widget } from "../Widget";
+import { Widget, useContentAlign, contentAlignClass } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { useOverlayStore } from "../../stores/overlay";
-
-export type EventType = "follow" | "sub" | "gift-sub" | "raid" | "bits";
-
-export interface StreamEvent {
-  id: string;
-  type: EventType;
-  username: string;
-  detail?: string;
-  timestamp: number;
-}
+import { events, listeners, type EventType } from "./event-feed-state";
 
 const eventLabels: Record<EventType, string> = {
   follow: "Followed",
@@ -29,17 +20,7 @@ const eventColours: Record<EventType, string> = {
   bits: "text-yellow-400",
 };
 
-const events: StreamEvent[] = [];
-const listeners = new Set<() => void>();
-
-/** Push a stream event to the feed */
-export function pushStreamEvent(event: Omit<StreamEvent, "id" | "timestamp">) {
-  events.push({ ...event, id: crypto.randomUUID(), timestamp: Date.now() });
-  if (events.length > 100) events.splice(0, events.length - 100);
-  listeners.forEach((fn) => fn());
-}
-
-function useStreamEvents(): StreamEvent[] {
+function useStreamEvents() {
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   useEffect(() => {
     listeners.add(rerender);
@@ -48,9 +29,11 @@ function useStreamEvents(): StreamEvent[] {
   return events;
 }
 
-function EventFeedContent() {
+function EventFeedContent({ instanceId }: { instanceId: string }) {
   const evts = useStreamEvents();
   const editMode = useOverlayStore((s) => s.editMode);
+  const align = useContentAlign(instanceId);
+  const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,8 +43,8 @@ function EventFeedContent() {
   const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1.5 scrollbar-thin">
-      {evts.length === 0 && (
+    <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-1.5 scrollbar-thin flex flex-col ${alignCls}`}>
+      {evts.length === 0 && editMode && (
         <p className={`text-white/40 text-sm italic ${lineBg}`}>No events yet</p>
       )}
       {evts.map((evt) => (
@@ -79,7 +62,7 @@ export function EventFeedWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Event feed">
       <div className="h-full">
-        <EventFeedContent />
+        <EventFeedContent instanceId={instanceId} />
       </div>
     </Widget>
   );

@@ -57,6 +57,7 @@ import { EventLogWidget } from "./event-log/EventLogWidget";
 import { RaidAlertWidget } from "./raid-alerts/RaidAlertWidget";
 import { SubAlertWidget } from "./subscription-alerts/SubAlertWidget";
 import { StreamInfoWidget, StreamInfoSettings } from "./stream-info/StreamInfoWidget";
+import { StreamTitleWidget, StreamTitleSettings, DEFAULT_CONFIG as STREAM_TITLE_DEFAULT_CONFIG } from "./stream-title/StreamTitleWidget";
 
 registerWidget({ id: "chat", name: "Chat", component: ChatWidget, singleton: true, defaults: { x: 8, y: 840, width: 416, height: 296 } });
 registerWidget({ id: "viewer-count", name: "Viewer count", component: ViewerCountWidget, singleton: true, defaults: { x: 1192, y: 24, width: 200, height: 64 } });
@@ -69,3 +70,4 @@ registerWidget({ id: "event-log", name: "Event log", component: EventLogWidget, 
 registerWidget({ id: "raid-alerts", name: "Raid alerts", component: RaidAlertWidget, singleton: true, defaults: { x: 1112, y: 880, width: 352, height: 120 } });
 registerWidget({ id: "subscription-alerts", name: "Subscription alerts", component: SubAlertWidget, singleton: true, defaults: { x: 1112, y: 760, width: 352, height: 120 } });
 registerWidget({ id: "stream-info", name: "Stream info", component: StreamInfoWidget, defaults: { x: 1192, y: 96, width: 304, height: 152 }, defaultConfig: { showTitle: true, showGame: true, showUptime: true, showViewers: false }, settingsComponent: StreamInfoSettings });
+registerWidget({ id: "stream-title", name: "Stream title", component: StreamTitleWidget, singleton: true, defaults: { x: 8, y: 8, width: 400, height: 48 }, defaultConfig: { ...STREAM_TITLE_DEFAULT_CONFIG }, settingsComponent: StreamTitleSettings });

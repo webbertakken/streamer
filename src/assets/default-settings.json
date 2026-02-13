@@ -1,0 +1,17 @@
+{
+  "borderRadius": 8,
+  "globalFont": "inherit",
+  "widgetBgColour": "#000000",
+  "widgetBgOpacity": 0,
+  "widgetTextColour": "#ffffff",
+  "widgetLiveBg": false,
+  "panelBgColour": "#000000",
+  "panelBgOpacity": 60,
+  "panelAlignH": "center",
+  "panelAlignV": "center",
+  "panelWidth": 320,
+  "soundEnabled": true,
+  "soundVolume": 80,
+  "twitchColours": true,
+  "presenceThreshold": 1000
+}

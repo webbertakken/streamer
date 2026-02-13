@@ -1,80 +1,14 @@
 import { useRef, useEffect, useReducer, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Widget } from "../Widget";
+import { Widget, useContentAlign, contentAlignClass } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { useOverlayStore } from "../../stores/overlay";
 import { useTwitchStore } from "../../stores/twitch";
 import { sendChatMessage } from "../../twitch/irc";
+import { messages, listeners, messageOpacity } from "./chat-state";
+import { getBadgeUrl } from "../../twitch/badges";
 
-export interface ChatMessage {
-  id: string;
-  username: string;
-  colour: string;
-  text: string;
-  timestamp: number;
-}
-
-/** How long a message lives before being removed (ms). */
-export const MESSAGE_TTL_MS = 60_000;
-/** How often the expiry sweep runs (ms). */
-const SWEEP_INTERVAL_MS = 5_000;
-/** Duration of the fade-out at end of life (ms). */
-const FADE_DURATION_MS = 5_000;
-
-/** Temporary in-memory store until Twitch IRC is connected */
-const messages: ChatMessage[] = [];
-const listeners = new Set<() => void>();
-
-export function pushChatMessage(msg: ChatMessage) {
-  messages.push(msg);
-  if (messages.length > 200) messages.splice(0, messages.length - 200);
-  listeners.forEach((fn) => fn());
-}
-
-export function getChatMessages(): ChatMessage[] {
-  return messages;
-}
-
-export function loadChatMessages(saved: ChatMessage[]): void {
-  messages.length = 0;
-  messages.push(...saved);
-  listeners.forEach((fn) => fn());
-}
-
-/** Subscribe to message changes. Returns an unsubscribe function. */
-export function subscribeChatMessages(fn: () => void): () => void {
-  listeners.add(fn);
-  return () => { listeners.delete(fn); };
-}
-
-/** Remove messages that have exceeded the TTL. */
-function expireMessages(): void {
-  const cutoff = Date.now() - MESSAGE_TTL_MS;
-  let removed = 0;
-  while (messages.length > 0 && messages[0].timestamp < cutoff) {
-    messages.shift();
-    removed++;
-  }
-  if (removed > 0) listeners.forEach((fn) => fn());
-}
-
-let sweepInterval: ReturnType<typeof setInterval> | null = null;
-
-/** Start the periodic message expiry sweep. */
-export function startMessageExpiry(): void {
-  if (sweepInterval) return;
-  sweepInterval = setInterval(expireMessages, SWEEP_INTERVAL_MS);
-}
-
-/** Stop the periodic message expiry sweep. */
-export function stopMessageExpiry(): void {
-  if (sweepInterval) {
-    clearInterval(sweepInterval);
-    sweepInterval = null;
-  }
-}
-
-function useChatMessages(): ChatMessage[] {
+function useChatMessages() {
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   useEffect(() => {
     listeners.add(rerender);
@@ -85,18 +19,13 @@ function useChatMessages(): ChatMessage[] {
 
 const DEFAULT_NAME_COLOUR = "#FFFFFF";
 
-/** Compute opacity for a message based on its remaining lifetime (0–1). */
-function messageOpacity(timestamp: number, now: number): number {
-  const remaining = MESSAGE_TTL_MS - (now - timestamp);
-  if (remaining <= 0) return 0;
-  if (remaining >= FADE_DURATION_MS) return 1;
-  return remaining / FADE_DURATION_MS;
-}
-
-function ChatContent() {
+function ChatContent({ instanceId }: { instanceId: string }) {
   const msgs = useChatMessages();
   const editMode = useOverlayStore((s) => s.editMode);
   const twitchColours = useOverlayStore((s) => s.twitchColours);
+  const borderRadius = useOverlayStore((s) => s.borderRadius);
+  const align = useContentAlign(instanceId);
+  const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -110,19 +39,32 @@ function ChatContent() {
     return () => clearInterval(id);
   }, []);
 
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
+  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30"}`;
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-1 scrollbar-thin">
-      {msgs.length === 0 && (
-        <p className={`text-white/40 text-sm italic ${lineBg}`}>No messages yet</p>
+    <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-1 scrollbar-thin flex flex-col ${alignCls}`}>
+      {msgs.length === 0 && editMode && (
+        <div className={`text-white/40 text-sm italic ${lineBg}`} style={{ borderRadius: editMode ? undefined : borderRadius }}>No messages yet</div>
       )}
       {msgs.map((msg) => (
         <div
           key={msg.id}
           className={`text-sm leading-snug ${lineBg}`}
-          style={{ opacity: messageOpacity(msg.timestamp, now), transition: "opacity 1s linear" }}
+          style={{ opacity: messageOpacity(msg.timestamp, now), transition: "opacity 1s linear", borderRadius: editMode ? undefined : borderRadius }}
         >
+          {msg.badges?.map((b) => {
+            const url = getBadgeUrl(b.setId, b.versionId);
+            return url ? (
+              <img
+                key={`${b.setId}-${b.versionId}`}
+                src={url}
+                alt={b.setId}
+                className="inline-block align-middle mr-0.5"
+                width={18}
+                height={18}
+              />
+            ) : null;
+          })}
           <span className="font-bold" style={{ color: twitchColours ? msg.colour : DEFAULT_NAME_COLOUR }}>
             {msg.username}
           </span>
@@ -136,11 +78,12 @@ function ChatContent() {
 const LONG_HOVER_MS = 500;
 const POLL_INTERVAL_MS = 200;
 
-function ChatInputContainer() {
+function ChatInputContainer({ instanceId }: { instanceId: string }) {
   const [text, setText] = useState("");
   const editMode = useOverlayStore((s) => s.editMode);
   const authenticated = useTwitchStore((s) => s.authenticated);
   const connected = useTwitchStore((s) => s.connected);
+  const align = useContentAlign(instanceId);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hoverStartRef = useRef<number | null>(null);
@@ -201,7 +144,7 @@ function ChatInputContainer() {
   }, [editMode]);
 
   return (
-    <div ref={containerRef} className="p-2 pt-0 min-w-0">
+    <div ref={containerRef} className={`p-2 pt-0 min-w-0 ${align === "right" ? "text-right" : align === "center" ? "text-center" : ""}`}>
       <input
         ref={inputRef}
         type="text"
@@ -223,9 +166,9 @@ export function ChatWidget({ instanceId }: WidgetInstanceProps) {
     <Widget instanceId={instanceId} name="Chat">
       <div className="h-full flex flex-col">
         <div className="flex-1 min-h-0">
-          <ChatContent />
+          <ChatContent instanceId={instanceId} />
         </div>
-        <ChatInputContainer />
+        <ChatInputContainer instanceId={instanceId} />
       </div>
     </Widget>
   );

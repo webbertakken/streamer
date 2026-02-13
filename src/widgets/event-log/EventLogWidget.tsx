@@ -1,39 +1,11 @@
 import { useEffect, useReducer, useRef } from "react";
-import { Widget } from "../Widget";
+import { Widget, useContentAlign, contentAlignClass } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { useOverlayStore } from "../../stores/overlay";
-import { subscribe, type ChannelEvent, type ChannelEventType } from "../../events/bus";
+import type { ChannelEvent, ChannelEventType } from "../../events/bus";
+import { entries, listeners, ensureSubscribed } from "./event-log-state";
 
-const MAX_EVENTS = 500;
-
-interface LogEntry {
-  id: string;
-  event: ChannelEvent;
-}
-
-const entries: LogEntry[] = [];
-const listeners = new Set<() => void>();
-
-function notify() {
-  listeners.forEach((fn) => fn());
-}
-
-let unsubBus: (() => void) | null = null;
-
-function ensureSubscribed() {
-  if (!unsubBus) {
-    unsubBus = subscribe((event: ChannelEvent) => {
-      entries.push({
-        id: `${event.timestamp}-${Math.random().toString(36).slice(2, 6)}`,
-        event,
-      });
-      if (entries.length > MAX_EVENTS) entries.splice(0, entries.length - MAX_EVENTS);
-      notify();
-    });
-  }
-}
-
-function useEventLog(): LogEntry[] {
+function useEventLog() {
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   useEffect(() => {
     ensureSubscribed();
@@ -103,9 +75,11 @@ function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-function EventLogContent() {
+function EventLogContent({ instanceId }: { instanceId: string }) {
   const log = useEventLog();
   const editMode = useOverlayStore((s) => s.editMode);
+  const align = useContentAlign(instanceId);
+  const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,11 +89,12 @@ function EventLogContent() {
   const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
 
   if (log.length === 0) {
+    if (!editMode) return null;
     return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No events yet</p>;
   }
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-2 space-y-0.5 scrollbar-thin">
+    <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-0.5 scrollbar-thin flex flex-col ${alignCls}`}>
       {log.map((entry) => (
         <div key={entry.id} className={`text-xs leading-snug flex items-start gap-1.5 ${lineBg}`}>
           <span className="text-white/30 shrink-0">{formatTime(entry.event.timestamp)}</span>
@@ -139,7 +114,7 @@ export function EventLogWidget({ instanceId }: WidgetInstanceProps) {
   return (
     <Widget instanceId={instanceId} name="Event log">
       <div className="h-full">
-        <EventLogContent />
+        <EventLogContent instanceId={instanceId} />
       </div>
     </Widget>
   );
