@@ -105,6 +105,32 @@ fn write_default_layout(data: String) -> Result<(), String> {
     }
 }
 
+#[tauri::command]
+#[allow(unused_variables)]
+fn write_default_settings(data: String) -> Result<(), String> {
+    #[cfg(not(debug_assertions))]
+    return Err("Only available in development builds".to_string());
+
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|_| "CARGO_MANIFEST_DIR not set".to_string())?;
+        let project_root = std::path::Path::new(&manifest_dir)
+            .parent()
+            .ok_or("Could not determine project root")?;
+        let target = project_root
+            .join("src")
+            .join("assets")
+            .join("default-settings.json");
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        std::fs::write(&target, &data).map_err(|e| e.to_string())?;
+        tracing::info!("Wrote default settings to: {}", target.display());
+        Ok(())
+    }
+}
+
 /// Open the application log folder in the system file explorer.
 #[tauri::command]
 fn open_log_folder() -> Result<(), String> {
@@ -148,6 +174,7 @@ pub fn run() {
             settings::read_chat_history,
             settings::write_chat_history,
             write_default_layout,
+            write_default_settings,
             open_log_folder,
             presets::list_presets,
             presets::save_preset,

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 import { invoke } from "@tauri-apps/api/core";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { getWidget } from "./widgets/registry";
@@ -164,6 +165,7 @@ function App() {
         return <Component key={inst.instanceId} instanceId={inst.instanceId} />;
       })}
       {!isSecondary && <SettingsWidget />}
+      <Toaster position="bottom-center" toastOptions={{ style: { background: "rgba(0,0,0,0.8)", color: "#fff", fontSize: "0.75rem", backdropFilter: "blur(8px)" } }} />
     </div>
   );
 }

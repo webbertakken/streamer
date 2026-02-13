@@ -12,6 +12,7 @@ import { playSound } from "../../audio/player";
 import { PresetsSection } from "./PresetsSection";
 import { type MonitorInfo, syncMonitorWindows } from "../../multimonitor";
 import { FontPicker } from "../shared/FontPicker";
+import toast from "react-hot-toast";
 
 const TABS = ["General", "Widgets", "Twitch", "Appearance"] as const;
 type Tab = (typeof TABS)[number];
@@ -205,9 +206,36 @@ function GeneralTab() {
     invoke("open_log_folder").catch(console.error);
   }
 
-  function handleSaveAsDefaults() {
-    const data = JSON.stringify(instances, null, 2);
-    invoke("write_default_layout", { data }).catch(console.error);
+  async function handleSaveAsDefaults() {
+    try {
+      // Strip per-widget style overrides — defaults should use global settings
+      const cleaned = instances.map(({ contentAlign: _a, fontFamily: _f, bgColour: _bg, bgOpacity: _bo, textColour: _tc, liveBg: _lb, ...rest }) => rest);
+      await invoke("write_default_layout", { data: JSON.stringify(cleaned, null, 2) });
+
+      const s = useOverlayStore.getState();
+      const settings = {
+        borderRadius: s.borderRadius,
+        globalFont: s.globalFont,
+        widgetBgColour: s.widgetBgColour,
+        widgetBgOpacity: s.widgetBgOpacity,
+        widgetTextColour: s.widgetTextColour,
+        widgetLiveBg: s.widgetLiveBg,
+        panelBgColour: s.panelBgColour,
+        panelBgOpacity: s.panelBgOpacity,
+        panelAlignH: s.panelAlignH,
+        panelAlignV: s.panelAlignV,
+        panelWidth: s.panelWidth,
+        soundEnabled: s.soundEnabled,
+        soundVolume: s.soundVolume,
+        twitchColours: s.twitchColours,
+        presenceThreshold: s.presenceThreshold,
+      };
+      await invoke("write_default_settings", { data: JSON.stringify(settings, null, 2) });
+
+      toast.success("Defaults saved");
+    } catch (e) {
+      toast.error(`Failed to save defaults: ${e}`);
+    }
   }
 
   return (

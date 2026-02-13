@@ -8,8 +8,7 @@
     "visible": true,
     "width": 412,
     "x": 2140,
-    "y": 778,
-    "bgOpacity": 0
+    "y": 778
   },
   {
     "height": 60,
@@ -19,8 +18,8 @@
     "typeId": "viewer-count",
     "visible": true,
     "width": 200,
-    "x": 1080,
-    "y": 1314
+    "x": 1056,
+    "y": 1186
   },
   {
     "height": 502,
@@ -31,8 +30,7 @@
     "visible": true,
     "width": 197,
     "x": 2355,
-    "y": 239,
-    "bgOpacity": 0
+    "y": 239
   },
   {
     "height": 120,
@@ -43,9 +41,7 @@
     "visible": true,
     "width": 350,
     "x": 1280,
-    "y": 1112,
-    "liveBg": false,
-    "bgOpacity": 0
+    "y": 1112
   },
   {
     "height": 120,
@@ -56,8 +52,7 @@
     "visible": true,
     "width": 350,
     "x": 1280,
-    "y": 1248,
-    "bgOpacity": 0
+    "y": 1248
   },
   {
     "height": 120,
@@ -68,8 +63,7 @@
     "visible": true,
     "width": 350,
     "x": 1632,
-    "y": 1248,
-    "bgOpacity": 0
+    "y": 1248
   },
   {
     "height": 120,
@@ -80,8 +74,7 @@
     "visible": true,
     "width": 352,
     "x": 1984,
-    "y": 1248,
-    "bgOpacity": 0
+    "y": 1248
   },
   {
     "height": 272,
@@ -92,8 +85,7 @@
     "visible": true,
     "width": 296,
     "x": 2256,
-    "y": 1112,
-    "bgOpacity": 0
+    "y": 1112
   },
   {
     "config": {
