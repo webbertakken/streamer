@@ -81,14 +81,12 @@ export async function hydrate(): Promise<void> {
         height: old?.height ?? def?.defaults.height ?? 200,
         visible: old?.visible ?? true,
         locked: false,
-        opacity: 100,
       };
     });
 
     // Migrate: add locked/opacity defaults for existing settings missing them
     for (const inst of instances) {
       if (inst.locked === undefined) inst.locked = false;
-      if (inst.opacity === undefined) inst.opacity = 100;
     }
 
     // Migrate v1: clear per-widget style overrides so they use new global defaults
@@ -97,7 +95,24 @@ export async function hydrate(): Promise<void> {
         delete inst.bgColour;
         delete inst.bgOpacity;
         delete inst.textColour;
-        delete inst.liveBg;
+      }
+    }
+
+    // Migrate v2: remove dead instance.opacity; carry panelBgOpacity forward as widgetBgOpacity
+    let migratedWidgetBgOpacity: number | undefined;
+    if ((data._v ?? 0) < 2) {
+      for (const inst of instances) {
+        delete (inst as unknown as Record<string, unknown>).opacity;
+      }
+      if (data.overlay.panelBgOpacity !== undefined) {
+        migratedWidgetBgOpacity = data.overlay.panelBgOpacity;
+      }
+    }
+
+    // Migrate v3: remove liveBg from instances
+    if ((data._v ?? 0) < 3) {
+      for (const inst of instances) {
+        delete (inst as unknown as Record<string, unknown>).liveBg;
       }
     }
 
@@ -123,14 +138,12 @@ export async function hydrate(): Promise<void> {
       ...(data.overlay.borderRadius !== undefined && { borderRadius: data.overlay.borderRadius }),
       ...(data.overlay.panelWidth !== undefined && { panelWidth: data.overlay.panelWidth }),
       ...(data.overlay.panelBgColour !== undefined && { panelBgColour: data.overlay.panelBgColour }),
-      ...(data.overlay.panelBgOpacity !== undefined && { panelBgOpacity: data.overlay.panelBgOpacity }),
       ...(data.overlay.panelAlignH && { panelAlignH: data.overlay.panelAlignH }),
       ...(data.overlay.panelAlignV && { panelAlignV: data.overlay.panelAlignV }),
       ...(data.overlay.globalFont !== undefined && { globalFont: data.overlay.globalFont }),
       ...(data.overlay.widgetBgColour !== undefined && { widgetBgColour: data.overlay.widgetBgColour }),
-      ...(data.overlay.widgetBgOpacity !== undefined && { widgetBgOpacity: data.overlay.widgetBgOpacity }),
+      ...(migratedWidgetBgOpacity !== undefined ? { widgetBgOpacity: migratedWidgetBgOpacity } : data.overlay.widgetBgOpacity !== undefined && { widgetBgOpacity: data.overlay.widgetBgOpacity }),
       ...(data.overlay.widgetTextColour !== undefined && { widgetTextColour: data.overlay.widgetTextColour }),
-      ...(data.overlay.widgetLiveBg !== undefined && { widgetLiveBg: data.overlay.widgetLiveBg }),
     });
   }
 
@@ -160,7 +173,7 @@ function gatherState(): PersistedSettings {
   const twitch = useTwitchStore.getState();
 
   return {
-    _v: 1,
+    _v: 3,
     overlay: {
       instances: overlay.instances,
       fileLogging: overlay.fileLogging,
@@ -174,14 +187,12 @@ function gatherState(): PersistedSettings {
       borderRadius: overlay.borderRadius,
       panelWidth: overlay.panelWidth,
       panelBgColour: overlay.panelBgColour,
-      panelBgOpacity: overlay.panelBgOpacity,
       panelAlignH: overlay.panelAlignH,
       panelAlignV: overlay.panelAlignV,
       globalFont: overlay.globalFont,
       widgetBgColour: overlay.widgetBgColour,
       widgetBgOpacity: overlay.widgetBgOpacity,
       widgetTextColour: overlay.widgetTextColour,
-      widgetLiveBg: overlay.widgetLiveBg,
     },
     twitch: { channel: twitch.channel },
   };

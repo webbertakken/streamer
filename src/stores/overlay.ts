@@ -13,13 +13,11 @@ export interface WidgetInstance {
   height: number;
   visible: boolean;
   locked: boolean;
-  opacity: number;
   contentAlign?: "left" | "center" | "right";
   fontFamily?: string;
   bgColour?: string;
   bgOpacity?: number;
   textColour?: string;
-  liveBg?: boolean;
   config?: Record<string, unknown>;
 }
 
@@ -72,8 +70,6 @@ interface OverlayStore {
   setPanelWidth: (px: number) => void;
   panelBgColour: string;
   setPanelBgColour: (colour: string) => void;
-  panelBgOpacity: number;
-  setPanelBgOpacity: (opacity: number) => void;
   panelAlignH: "left" | "center" | "right";
   panelAlignV: "top" | "center" | "bottom";
   setPanelAlign: (h: "left" | "center" | "right", v: "top" | "center" | "bottom") => void;
@@ -85,8 +81,6 @@ interface OverlayStore {
   setWidgetBgOpacity: (opacity: number) => void;
   widgetTextColour: string;
   setWidgetTextColour: (colour: string) => void;
-  widgetLiveBg: boolean;
-  toggleWidgetLiveBg: () => void;
   restoreDefaults: () => void;
 }
 
@@ -123,7 +117,7 @@ function seedInstances(): WidgetInstance[] {
     const config = typeId === "custom-text"
       ? { ...def.defaultConfig, text: "Press \"Ctrl + Shift + I\" for overlay Edit-mode." }
       : def.defaultConfig ? { ...def.defaultConfig } : undefined;
-    return [{ instanceId: `${typeId}-1`, typeId, ...def.defaults, visible: true, locked: false, opacity: 100, config }];
+    return [{ instanceId: `${typeId}-1`, typeId, ...def.defaults, visible: true, locked: false, config }];
   });
 }
 
@@ -154,7 +148,7 @@ function createOverlayStore() {
     const instanceId = nextInstanceId(typeId, get().instances);
     const config = def.defaultConfig ? { ...def.defaultConfig } : undefined;
     set((s) => ({
-      instances: [...s.instances, { instanceId, typeId, ...def.defaults, visible: true, locked: false, opacity: 100, config }],
+      instances: [...s.instances, { instanceId, typeId, ...def.defaults, visible: true, locked: false, config }],
     }));
   },
   removeInstance: (instanceId) =>
@@ -189,8 +183,6 @@ function createOverlayStore() {
   setPanelWidth: (px) => set({ panelWidth: px }),
   panelBgColour: defaultSettings.panelBgColour,
   setPanelBgColour: (colour) => set({ panelBgColour: colour }),
-  panelBgOpacity: defaultSettings.panelBgOpacity,
-  setPanelBgOpacity: (opacity) => set({ panelBgOpacity: opacity }),
   panelAlignH: defaultSettings.panelAlignH as "left" | "center" | "right",
   panelAlignV: defaultSettings.panelAlignV as "top" | "center" | "bottom",
   setPanelAlign: (h, v) => set({ panelAlignH: h, panelAlignV: v }),
@@ -202,9 +194,7 @@ function createOverlayStore() {
   setWidgetBgOpacity: (opacity) => set({ widgetBgOpacity: opacity }),
   widgetTextColour: defaultSettings.widgetTextColour,
   setWidgetTextColour: (colour) => set({ widgetTextColour: colour }),
-  widgetLiveBg: defaultSettings.widgetLiveBg,
-  toggleWidgetLiveBg: () => set((s) => ({ widgetLiveBg: !s.widgetLiveBg })),
-  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: defaultSettings.twitchColours, presenceThreshold: defaultSettings.presenceThreshold, commands: [...DEFAULT_COMMANDS], soundEnabled: defaultSettings.soundEnabled, soundVolume: defaultSettings.soundVolume, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [], borderRadius: defaultSettings.borderRadius, panelWidth: defaultSettings.panelWidth, panelBgColour: defaultSettings.panelBgColour, panelBgOpacity: defaultSettings.panelBgOpacity, panelAlignH: defaultSettings.panelAlignH as "left" | "center" | "right", panelAlignV: defaultSettings.panelAlignV as "top" | "center" | "bottom", globalFont: defaultSettings.globalFont, widgetBgColour: defaultSettings.widgetBgColour, widgetBgOpacity: defaultSettings.widgetBgOpacity, widgetTextColour: defaultSettings.widgetTextColour, widgetLiveBg: defaultSettings.widgetLiveBg }),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: defaultSettings.twitchColours, presenceThreshold: defaultSettings.presenceThreshold, commands: [...DEFAULT_COMMANDS], soundEnabled: defaultSettings.soundEnabled, soundVolume: defaultSettings.soundVolume, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [], borderRadius: defaultSettings.borderRadius, panelWidth: defaultSettings.panelWidth, panelBgColour: defaultSettings.panelBgColour, panelAlignH: defaultSettings.panelAlignH as "left" | "center" | "right", panelAlignV: defaultSettings.panelAlignV as "top" | "center" | "bottom", globalFont: defaultSettings.globalFont, widgetBgColour: defaultSettings.widgetBgColour, widgetBgOpacity: defaultSettings.widgetBgOpacity, widgetTextColour: defaultSettings.widgetTextColour }),
   }));
 }
 

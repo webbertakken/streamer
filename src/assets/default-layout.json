@@ -13,13 +13,14 @@
   {
     "height": 60,
     "instanceId": "viewer-count-1",
+    "liveBg": true,
     "locked": false,
     "opacity": 100,
     "typeId": "viewer-count",
     "visible": true,
     "width": 200,
-    "x": 1056,
-    "y": 1186
+    "x": 1080,
+    "y": 1250
   },
   {
     "height": 502,
@@ -41,7 +42,8 @@
     "visible": true,
     "width": 350,
     "x": 1280,
-    "y": 1112
+    "y": 1112,
+    "liveBg": false
   },
   {
     "height": 120,
@@ -104,7 +106,8 @@
     "typeId": "stream-title",
     "visible": true,
     "width": 928,
-    "x": 816,
-    "y": 80
+    "x": 840,
+    "y": 56,
+    "liveBg": true
   }
 ]

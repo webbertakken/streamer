@@ -101,7 +101,6 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
   const borderRadius = useOverlayStore((s) => s.borderRadius);
   const setDragging = useOverlayStore((s) => s.setDragging);
   const previewBg = useOverlayStore((s) => s.previewBg);
-  const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -262,7 +261,7 @@ export function Widget({ instanceId, name, children }: WidgetProps) {
         style={{
           borderRadius,
           fontFamily: effectiveFont,
-          backgroundColor: (!editMode || previewBg || (instance.liveBg ?? widgetLiveBg)) ? hexToRgba(effectiveBgColour, effectiveBgOpacity) : undefined,
+          backgroundColor: (!editMode || previewBg) ? hexToRgba(effectiveBgColour, effectiveBgOpacity) : undefined,
           color: effectiveTextColour,
         }}
       >
@@ -384,6 +383,9 @@ function WidgetSettingsPopover({
                 max={100}
                 value={instance.bgOpacity ?? useOverlayStore.getState().widgetBgOpacity}
                 onChange={(e) => updateInstance(instanceId, { bgOpacity: Number(e.target.value) })}
+                onPointerDown={() => useOverlayStore.getState().setPreviewBg(true)}
+                onPointerUp={() => useOverlayStore.getState().setPreviewBg(false)}
+                onLostPointerCapture={() => useOverlayStore.getState().setPreviewBg(false)}
                 className="flex-1 accent-blue-500"
               />
               {instance.bgOpacity !== undefined && (
@@ -407,26 +409,6 @@ function WidgetSettingsPopover({
               {instance.textColour && (
                 <button
                   onClick={() => updateInstance(instanceId, { textColour: undefined })}
-                  className="text-[10px] text-white/40 hover:text-white/60"
-                  title="Reset to global"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 text-xs text-white/60 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={instance.liveBg ?? useOverlayStore.getState().widgetLiveBg}
-                  onChange={() => updateInstance(instanceId, { liveBg: !(instance.liveBg ?? useOverlayStore.getState().widgetLiveBg) })}
-                  className="accent-blue-500"
-                />
-                Live background
-              </label>
-              {instance.liveBg !== undefined && (
-                <button
-                  onClick={() => updateInstance(instanceId, { liveBg: undefined })}
                   className="text-[10px] text-white/40 hover:text-white/60"
                   title="Reset to global"
                 >
