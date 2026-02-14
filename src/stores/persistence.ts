@@ -10,6 +10,7 @@ import {
   loadChatMessages,
   subscribeChatMessages,
 } from "../widgets/chat/chat-state";
+import { defaultColourForUsername } from "../twitch/irc";
 
 /** Old split format had widgetStates as a separate record */
 interface OldWidgetState {
@@ -164,7 +165,9 @@ export async function hydrateChatHistory(): Promise<void> {
   if (Date.now() - data.savedAt > TEN_MINUTES) return;
 
   const cutoff = Date.now() - MESSAGE_TTL_MS;
-  const fresh = data.messages.filter((m) => m.timestamp >= cutoff);
+  const fresh = data.messages
+    .filter((m) => m.timestamp >= cutoff)
+    .map((m) => ({ ...m, colour: m.colour || defaultColourForUsername(m.username) }));
   if (fresh.length === 0) return;
 
   loadChatMessages(fresh);

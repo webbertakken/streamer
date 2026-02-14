@@ -8,6 +8,7 @@ interface OverlaySyncPayload {
   editMode: boolean;
   twitchColours: boolean;
   presenceThreshold: number;
+  textBgOpacity: number;
 }
 
 const SYNC_EVENT = "overlay-state-sync";
@@ -24,6 +25,7 @@ function gatherSyncState(): OverlaySyncPayload {
     editMode: s.editMode,
     twitchColours: s.twitchColours,
     presenceThreshold: s.presenceThreshold,
+    textBgOpacity: s.textBgOpacity,
   };
 }
 
@@ -67,6 +69,7 @@ export async function startListening(): Promise<void> {
       editMode: event.payload.editMode,
       twitchColours: event.payload.twitchColours,
       presenceThreshold: event.payload.presenceThreshold,
+      textBgOpacity: event.payload.textBgOpacity,
     });
   });
 }
