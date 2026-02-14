@@ -3,6 +3,7 @@
   "globalFont": "inherit",
   "widgetBgColour": "#000000",
   "widgetBgOpacity": 67,
+  "textBgOpacity": 30,
   "widgetTextColour": "#ffffff",
   "panelBgColour": "#000000",
   "panelAlignH": "center",

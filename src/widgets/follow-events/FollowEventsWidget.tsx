@@ -21,19 +21,21 @@ function formatTime(ts: number): string {
 function FollowEventsContent({ instanceId }: { instanceId: string }) {
   const entries = useFollows();
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const align = useContentAlign(instanceId);
   const alignCls = contentAlignClass(align);
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
+  const lineBg = "px-1 w-fit";
+  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" };
 
   if (entries.length === 0) {
     if (!editMode) return null;
-    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No follows yet</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>No follows yet</p>;
   }
 
   return (
     <div className={`h-full overflow-y-auto p-2 space-y-1 scrollbar-thin flex flex-col ${alignCls}`}>
       {entries.map((f) => (
-        <div key={f.id} className={`text-sm leading-snug ${lineBg}`}>
+        <div key={f.id} className={`text-sm leading-snug ${lineBg}`} style={lineBgStyle}>
           <span className="text-white/40 text-xs mr-1">{formatTime(f.timestamp)}</span>
           <span className="text-green-400 font-medium">{f.username}</span>
           <span className="text-white/60"> followed</span>

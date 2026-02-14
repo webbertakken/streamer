@@ -13,6 +13,7 @@ export interface CustomTextConfig {
 function CustomTextContent({ instanceId }: { instanceId: string }) {
   const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const config = instance?.config as CustomTextConfig | undefined;
   if (!config) return null;
 
@@ -26,7 +27,10 @@ function CustomTextContent({ instanceId }: { instanceId: string }) {
         textAlign: config.textAlign,
       }}
     >
-      <span className={`px-2 py-0.5 ${editMode ? "" : "bg-black/30 rounded"}`}>{config.text}</span>
+      <span
+        className="px-2 py-0.5"
+        style={editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" }}
+      >{config.text}</span>
     </div>
   );
 }
