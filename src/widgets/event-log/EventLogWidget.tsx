@@ -78,6 +78,7 @@ function formatTime(ts: number): string {
 function EventLogContent({ instanceId }: { instanceId: string }) {
   const log = useEventLog();
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const align = useContentAlign(instanceId);
   const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -86,17 +87,18 @@ function EventLogContent({ instanceId }: { instanceId: string }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [log.length]);
 
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
+  const lineBg = "px-1 w-fit";
+  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" };
 
   if (log.length === 0) {
     if (!editMode) return null;
-    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>No events yet</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>No events yet</p>;
   }
 
   return (
     <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-0.5 scrollbar-thin flex flex-col ${alignCls}`}>
       {log.map((entry) => (
-        <div key={entry.id} className={`text-xs leading-snug flex items-start gap-1.5 ${lineBg}`}>
+        <div key={entry.id} className={`text-xs leading-snug flex items-start gap-1.5 ${lineBg}`} style={lineBgStyle}>
           <span className="text-white/30 shrink-0">{formatTime(entry.event.timestamp)}</span>
           <span
             className={`${badgeColours[entry.event.type]} text-white px-1 rounded text-[10px] uppercase shrink-0`}

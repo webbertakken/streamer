@@ -79,6 +79,8 @@ interface OverlayStore {
   setWidgetBgColour: (colour: string) => void;
   widgetBgOpacity: number;
   setWidgetBgOpacity: (opacity: number) => void;
+  textBgOpacity: number;
+  setTextBgOpacity: (opacity: number) => void;
   widgetTextColour: string;
   setWidgetTextColour: (colour: string) => void;
   restoreDefaults: () => void;
@@ -192,9 +194,11 @@ function createOverlayStore() {
   setWidgetBgColour: (colour) => set({ widgetBgColour: colour }),
   widgetBgOpacity: defaultSettings.widgetBgOpacity,
   setWidgetBgOpacity: (opacity) => set({ widgetBgOpacity: opacity }),
+  textBgOpacity: defaultSettings.textBgOpacity,
+  setTextBgOpacity: (opacity) => set({ textBgOpacity: opacity }),
   widgetTextColour: defaultSettings.widgetTextColour,
   setWidgetTextColour: (colour) => set({ widgetTextColour: colour }),
-  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: defaultSettings.twitchColours, presenceThreshold: defaultSettings.presenceThreshold, commands: [...DEFAULT_COMMANDS], soundEnabled: defaultSettings.soundEnabled, soundVolume: defaultSettings.soundVolume, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [], borderRadius: defaultSettings.borderRadius, panelWidth: defaultSettings.panelWidth, panelBgColour: defaultSettings.panelBgColour, panelAlignH: defaultSettings.panelAlignH as "left" | "center" | "right", panelAlignV: defaultSettings.panelAlignV as "top" | "center" | "bottom", globalFont: defaultSettings.globalFont, widgetBgColour: defaultSettings.widgetBgColour, widgetBgOpacity: defaultSettings.widgetBgOpacity, widgetTextColour: defaultSettings.widgetTextColour }),
+  restoreDefaults: () => set({ instances: seedInstances(), fileLogging: true, twitchColours: defaultSettings.twitchColours, presenceThreshold: defaultSettings.presenceThreshold, commands: [...DEFAULT_COMMANDS], soundEnabled: defaultSettings.soundEnabled, soundVolume: defaultSettings.soundVolume, soundMappings: { ...DEFAULT_SOUND_MAPPINGS }, selectedMonitors: [], borderRadius: defaultSettings.borderRadius, panelWidth: defaultSettings.panelWidth, panelBgColour: defaultSettings.panelBgColour, panelAlignH: defaultSettings.panelAlignH as "left" | "center" | "right", panelAlignV: defaultSettings.panelAlignV as "top" | "center" | "bottom", globalFont: defaultSettings.globalFont, widgetBgColour: defaultSettings.widgetBgColour, widgetBgOpacity: defaultSettings.widgetBgOpacity, textBgOpacity: defaultSettings.textBgOpacity, widgetTextColour: defaultSettings.widgetTextColour }),
   }));
 }
 
