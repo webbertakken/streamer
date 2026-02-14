@@ -3,12 +3,19 @@ export interface ChatBadge {
   versionId: string;
 }
 
+export interface ChatEmote {
+  id: string;
+  start: number;
+  end: number;
+}
+
 export interface ChatMessage {
   id: string;
   username: string;
   colour: string;
   text: string;
   badges?: ChatBadge[];
+  emotes?: ChatEmote[];
   timestamp: number;
 }
 

@@ -130,8 +130,31 @@ function handleChatCommand(text: string): void {
   }
 }
 
+/** Parse the emotes tag from an IRC message into an array of emote positions.
+ *  Format: `emotesv2_ID:start-end,start-end/emotesv2_ID2:start-end` */
+export function parseEmotes(tag: string): Array<{ id: string; start: number; end: number }> {
+  if (!tag) return [];
+  const emotes: Array<{ id: string; start: number; end: number }> = [];
+  for (const entry of tag.split("/")) {
+    const colonIdx = entry.indexOf(":");
+    if (colonIdx === -1) continue;
+    const id = entry.slice(0, colonIdx);
+    const positions = entry.slice(colonIdx + 1);
+    for (const pos of positions.split(",")) {
+      const dashIdx = pos.indexOf("-");
+      if (dashIdx === -1) continue;
+      const start = Number(pos.slice(0, dashIdx));
+      const end = Number(pos.slice(dashIdx + 1));
+      if (!Number.isNaN(start) && !Number.isNaN(end)) {
+        emotes.push({ id, start, end });
+      }
+    }
+  }
+  return emotes;
+}
+
 /** Parse a PRIVMSG IRC line into a chat message, or null if not parseable. */
-function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; badges: Array<{ setId: string; versionId: string }> } | null {
+export function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; badges: Array<{ setId: string; versionId: string }>; emotes: Array<{ id: string; start: number; end: number }> } | null {
   const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
   const tags = tagEnd > 0 ? raw.slice(1, tagEnd) : "";
   const rest = tagEnd > 0 ? raw.slice(tagEnd + 1) : raw;
@@ -148,6 +171,7 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
   let displayName = "";
   let colour = "";
   let badges: Array<{ setId: string; versionId: string }> = [];
+  let emotesTag = "";
   for (const pair of tags.split(";")) {
     const eq = pair.indexOf("=");
     if (eq === -1) continue;
@@ -160,6 +184,8 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
         const [setId, versionId] = entry.split("/");
         return { setId, versionId };
       });
+    } else if (key === "emotes" && value) {
+      emotesTag = value;
     }
   }
 
@@ -170,7 +196,7 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
 
   if (!displayName) return null;
 
-  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, badges };
+  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, badges, emotes: parseEmotes(emotesTag) };
 }
 
 /** Parse a JOIN or PART line, returning the username or null. */
@@ -186,7 +212,7 @@ function parseJoinPart(raw: string): { username: string; type: "join" | "part" }
 }
 
 /** Extract the color tag value from an IRC tags string. */
-function parseColourTag(raw: string): string | null {
+export function parseColourTag(raw: string): string | null {
   const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
   if (tagEnd <= 0) return null;
   const tags = raw.slice(1, tagEnd);
@@ -224,6 +250,7 @@ function handleMessage(event: MessageEvent<string>) {
           colour: parsed.colour,
           text: parsed.text,
           badges: parsed.badges,
+          emotes: parsed.emotes.length > 0 ? parsed.emotes : undefined,
           timestamp: Date.now(),
         };
         pushChatMessage(msg);

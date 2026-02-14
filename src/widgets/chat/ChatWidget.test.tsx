@@ -42,7 +42,7 @@ vi.mock("../../twitch/irc", () => ({
 }));
 
 // Import after mocks are set up
-const { ChatWidget } = await import("./ChatWidget");
+const { ChatWidget, splitMessageFragments } = await import("./ChatWidget");
 
 function addTestMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   const msg: ChatMessage = {
@@ -148,5 +148,90 @@ describe("ChatWidget colour rendering", () => {
 
     expect(screen.getByText("Chatter")).toBeTruthy();
     expect(screen.getByText(/great stream!/)).toBeTruthy();
+  });
+});
+
+describe("splitMessageFragments", () => {
+  it("returns full text when no emotes are present", () => {
+    const result = splitMessageFragments("Hello world", undefined);
+
+    expect(result).toEqual([{ type: "text", text: "Hello world" }]);
+  });
+
+  it("returns full text when emotes array is empty", () => {
+    const result = splitMessageFragments("Hello world", []);
+
+    expect(result).toEqual([{ type: "text", text: "Hello world" }]);
+  });
+
+  it("splits text around a single emote", () => {
+    const result = splitMessageFragments("Hello Kappa world", [
+      { id: "25", start: 6, end: 10 },
+    ]);
+
+    expect(result).toEqual([
+      { type: "text", text: "Hello " },
+      { type: "emote", id: "25", name: "Kappa" },
+      { type: "text", text: " world" },
+    ]);
+  });
+
+  it("handles emote at the start of the message", () => {
+    const result = splitMessageFragments("Kappa hello", [
+      { id: "25", start: 0, end: 4 },
+    ]);
+
+    expect(result).toEqual([
+      { type: "emote", id: "25", name: "Kappa" },
+      { type: "text", text: " hello" },
+    ]);
+  });
+
+  it("handles emote at the end of the message", () => {
+    const result = splitMessageFragments("hello Kappa", [
+      { id: "25", start: 6, end: 10 },
+    ]);
+
+    expect(result).toEqual([
+      { type: "text", text: "hello " },
+      { type: "emote", id: "25", name: "Kappa" },
+    ]);
+  });
+
+  it("handles multiple emotes", () => {
+    const result = splitMessageFragments("Kappa hi PogChamp", [
+      { id: "25", start: 0, end: 4 },
+      { id: "305954156", start: 9, end: 17 },
+    ]);
+
+    expect(result).toEqual([
+      { type: "emote", id: "25", name: "Kappa" },
+      { type: "text", text: " hi " },
+      { type: "emote", id: "305954156", name: "PogChamp" },
+    ]);
+  });
+});
+
+describe("ChatWidget emote rendering", () => {
+  it("renders emotes as images", () => {
+    addTestMessage({
+      username: "EmoteUser",
+      text: "Hello Kappa world",
+      emotes: [{ id: "25", start: 6, end: 10 }],
+    });
+
+    render(<ChatWidget instanceId="chat-1" />);
+
+    const img = screen.getByAltText("Kappa");
+    expect(img.tagName).toBe("IMG");
+    expect(img.getAttribute("src")).toContain("/25/default/dark/1.0");
+  });
+
+  it("renders plain text when no emotes are present", () => {
+    addTestMessage({ username: "PlainUser", text: "no emotes here" });
+
+    render(<ChatWidget instanceId="chat-1" />);
+
+    expect(screen.getByText(/no emotes here/)).toBeTruthy();
   });
 });
