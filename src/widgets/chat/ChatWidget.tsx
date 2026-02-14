@@ -4,7 +4,7 @@ import { Widget, useContentAlign, contentAlignClass } from "../Widget";
 import type { WidgetInstanceProps } from "../registry";
 import { useOverlayStore } from "../../stores/overlay";
 import { useTwitchStore } from "../../stores/twitch";
-import { sendChatMessage } from "../../twitch/irc";
+import { sendChatMessage, defaultColourForUsername } from "../../twitch/irc";
 import { messages, listeners, messageOpacity } from "./chat-state";
 import { getBadgeUrl } from "../../twitch/badges";
 
@@ -65,7 +65,7 @@ function ChatContent({ instanceId }: { instanceId: string }) {
               />
             ) : null;
           })}
-          <span className="font-bold" style={{ color: twitchColours ? msg.colour : DEFAULT_NAME_COLOUR }}>
+          <span className="font-bold" style={{ color: twitchColours ? (msg.colour || defaultColourForUsername(msg.username)) : DEFAULT_NAME_COLOUR }}>
             {msg.username}
           </span>
           <span className="text-white/90">: {msg.text}</span>
