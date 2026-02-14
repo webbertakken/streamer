@@ -20,6 +20,7 @@ function ViewerCountContent() {
   const count = useViewerCount((s) => s.count);
   const setCount = useViewerCount((s) => s.setCount);
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const connected = useTwitchStore((s) => s.connected);
   const eventSubConnected = useTwitchStore((s) => s.eventSubConnected);
 
@@ -45,7 +46,10 @@ function ViewerCountContent() {
 
   return (
     <div className="h-full flex items-center justify-center px-4">
-      <div className={`flex items-center gap-2 px-2 py-0.5 ${editMode ? "" : "bg-black/30 rounded"}`}>
+      <div
+        className="flex items-center gap-2 px-2 py-0.5"
+        style={editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" }}
+      >
         <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80 animate-[pulse_5s_ease-in-out_infinite]" />
         <span className="text-white text-2xl font-bold tabular-nums">{count.toLocaleString()}</span>
         <span className="text-white/60 text-sm">viewers</span>

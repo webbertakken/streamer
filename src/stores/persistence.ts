@@ -43,6 +43,7 @@ interface PersistedSettings {
     globalFont?: string;
     widgetBgColour?: string;
     widgetBgOpacity?: number;
+    textBgOpacity?: number;
     widgetTextColour?: string;
     widgetLiveBg?: boolean;
   };
@@ -144,6 +145,7 @@ export async function hydrate(): Promise<void> {
       ...(data.overlay.globalFont !== undefined && { globalFont: data.overlay.globalFont }),
       ...(data.overlay.widgetBgColour !== undefined && { widgetBgColour: data.overlay.widgetBgColour }),
       ...(migratedWidgetBgOpacity !== undefined ? { widgetBgOpacity: migratedWidgetBgOpacity } : data.overlay.widgetBgOpacity !== undefined && { widgetBgOpacity: data.overlay.widgetBgOpacity }),
+      ...(data.overlay.textBgOpacity !== undefined && { textBgOpacity: data.overlay.textBgOpacity }),
       ...(data.overlay.widgetTextColour !== undefined && { widgetTextColour: data.overlay.widgetTextColour }),
     });
   }
@@ -195,6 +197,7 @@ function gatherState(): PersistedSettings {
       globalFont: overlay.globalFont,
       widgetBgColour: overlay.widgetBgColour,
       widgetBgOpacity: overlay.widgetBgOpacity,
+      textBgOpacity: overlay.textBgOpacity,
       widgetTextColour: overlay.widgetTextColour,
     },
     twitch: { channel: twitch.channel },

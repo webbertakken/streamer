@@ -32,6 +32,7 @@ function useStreamEvents() {
 function EventFeedContent({ instanceId }: { instanceId: string }) {
   const evts = useStreamEvents();
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const align = useContentAlign(instanceId);
   const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,15 +41,16 @@ function EventFeedContent({ instanceId }: { instanceId: string }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [evts.length]);
 
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
+  const lineBg = "px-1 w-fit";
+  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" };
 
   return (
     <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-1.5 scrollbar-thin flex flex-col ${alignCls}`}>
       {evts.length === 0 && editMode && (
-        <p className={`text-white/40 text-sm italic ${lineBg}`}>No events yet</p>
+        <p className={`text-white/40 text-sm italic ${lineBg}`} style={lineBgStyle}>No events yet</p>
       )}
       {evts.map((evt) => (
-        <div key={evt.id} className={`text-sm flex items-baseline gap-1.5 ${lineBg}`}>
+        <div key={evt.id} className={`text-sm flex items-baseline gap-1.5 ${lineBg}`} style={lineBgStyle}>
           <span className={`font-medium ${eventColours[evt.type]}`}>{eventLabels[evt.type]}</span>
           <span className="text-white font-bold">{evt.username}</span>
           {evt.detail && <span className="text-white/50">{evt.detail}</span>}

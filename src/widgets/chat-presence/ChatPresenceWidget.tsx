@@ -51,6 +51,7 @@ function usePresence(): string[] {
 function ChatPresenceContent({ instanceId }: { instanceId: string }) {
   const authenticated = useTwitchStore((s) => s.authenticated);
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const threshold = useOverlayStore((s) => s.presenceThreshold);
   const users = usePresence();
   const overThreshold = users.length > threshold;
@@ -70,15 +71,16 @@ function ChatPresenceContent({ instanceId }: { instanceId: string }) {
     return () => stopTracking();
   }, [authenticated, overThreshold]);
 
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30 rounded"}`;
+  const lineBg = "px-1 w-fit";
+  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" };
 
   if (!authenticated) {
-    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>Log in to track chat presence</p>;
+    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>Log in to track chat presence</p>;
   }
 
   if (overThreshold) {
     return (
-      <p className={`text-white/40 text-sm italic p-2 ${lineBg}`}>
+      <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>
         Chat presence is unavailable above {threshold} viewers
       </p>
     );
@@ -86,13 +88,13 @@ function ChatPresenceContent({ instanceId }: { instanceId: string }) {
 
   return (
     <div className={`h-full overflow-y-auto p-2 scrollbar-thin flex flex-col ${alignCls}`}>
-      <div className={`text-white/60 text-xs mb-1 ${lineBg}`}>{users.length} in chat</div>
+      <div className={`text-white/60 text-xs mb-1 ${lineBg}`} style={lineBgStyle}>{users.length} in chat</div>
       {users.length === 0 ? (
-        <p className={`text-white/40 text-sm italic ${lineBg}`}>No viewers tracked</p>
+        <p className={`text-white/40 text-sm italic ${lineBg}`} style={lineBgStyle}>No viewers tracked</p>
       ) : (
         <div className={`space-y-0.5 flex flex-col ${alignCls}`}>
           {users.map((u) => (
-            <div key={u} className={`text-sm text-white/80 ${lineBg}`}>{u}</div>
+            <div key={u} className={`text-sm text-white/80 ${lineBg}`} style={lineBgStyle}>{u}</div>
           ))}
         </div>
       )}

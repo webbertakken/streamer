@@ -24,6 +24,7 @@ function ChatContent({ instanceId }: { instanceId: string }) {
   const editMode = useOverlayStore((s) => s.editMode);
   const twitchColours = useOverlayStore((s) => s.twitchColours);
   const borderRadius = useOverlayStore((s) => s.borderRadius);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const align = useContentAlign(instanceId);
   const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -39,18 +40,19 @@ function ChatContent({ instanceId }: { instanceId: string }) {
     return () => clearInterval(id);
   }, []);
 
-  const lineBg = `px-1 w-fit ${editMode ? "" : "bg-black/30"}`;
+  const lineBg = "px-1 w-fit";
+  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})` };
 
   return (
     <div ref={scrollRef} className={`h-full overflow-y-auto p-2 space-y-1 scrollbar-thin flex flex-col ${alignCls}`}>
       {msgs.length === 0 && editMode && (
-        <div className={`text-white/40 text-sm italic ${lineBg}`} style={{ borderRadius: editMode ? undefined : borderRadius }}>No messages yet</div>
+        <div className={`text-white/40 text-sm italic ${lineBg}`} style={{ ...lineBgStyle, borderRadius: editMode ? undefined : borderRadius }}>No messages yet</div>
       )}
       {msgs.map((msg) => (
         <div
           key={msg.id}
           className={`text-sm leading-snug ${lineBg}`}
-          style={{ opacity: messageOpacity(msg.timestamp, now), transition: "opacity 1s linear", borderRadius: editMode ? undefined : borderRadius }}
+          style={{ ...lineBgStyle, opacity: messageOpacity(msg.timestamp, now), transition: "opacity 1s linear", borderRadius: editMode ? undefined : borderRadius }}
         >
           {msg.badges?.map((b) => {
             const url = getBadgeUrl(b.setId, b.versionId);
@@ -81,6 +83,7 @@ const POLL_INTERVAL_MS = 200;
 function ChatInputContainer({ instanceId }: { instanceId: string }) {
   const [text, setText] = useState("");
   const editMode = useOverlayStore((s) => s.editMode);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
   const authenticated = useTwitchStore((s) => s.authenticated);
   const connected = useTwitchStore((s) => s.connected);
   const align = useContentAlign(instanceId);
@@ -154,8 +157,8 @@ function ChatInputContainer({ instanceId }: { instanceId: string }) {
         onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder}
-        className="max-w-full bg-black/30 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
-        style={{ fieldSizing: "content" } as React.CSSProperties}
+        className="max-w-full text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
+        style={{ backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, fieldSizing: "content" } as React.CSSProperties}
       />
     </div>
   );

@@ -218,6 +218,7 @@ function GeneralTab() {
         globalFont: s.globalFont,
         widgetBgColour: s.widgetBgColour,
         widgetBgOpacity: s.widgetBgOpacity,
+        textBgOpacity: s.textBgOpacity,
         widgetTextColour: s.widgetTextColour,
         panelBgColour: s.panelBgColour,
         panelAlignH: s.panelAlignH,
@@ -557,6 +558,8 @@ function AppearanceTab() {
   const setWidgetBgColour = useOverlayStore((s) => s.setWidgetBgColour);
   const widgetBgOpacity = useOverlayStore((s) => s.widgetBgOpacity);
   const setWidgetBgOpacity = useOverlayStore((s) => s.setWidgetBgOpacity);
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
+  const setTextBgOpacity = useOverlayStore((s) => s.setTextBgOpacity);
   const widgetTextColour = useOverlayStore((s) => s.widgetTextColour);
   const setWidgetTextColour = useOverlayStore((s) => s.setWidgetTextColour);
   const panelBgColour = useOverlayStore((s) => s.panelBgColour);
@@ -628,6 +631,18 @@ function AppearanceTab() {
           className="flex-1 accent-blue-500"
         />
         <span className="text-xs text-white/50 w-7 text-right">{widgetBgOpacity}%</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-white/60 shrink-0">Text BG opacity</label>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={textBgOpacity}
+          onChange={(e) => setTextBgOpacity(Number(e.target.value))}
+          className="flex-1 accent-blue-500"
+        />
+        <span className="text-xs text-white/50 w-7 text-right">{textBgOpacity}%</span>
       </div>
       <div className="flex items-center gap-2">
         <label className="text-xs text-white/60 shrink-0">Text colour</label>
