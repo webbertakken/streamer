@@ -640,6 +640,9 @@ function AppearanceTab() {
           max={100}
           value={textBgOpacity}
           onChange={(e) => setTextBgOpacity(Number(e.target.value))}
+          onPointerDown={() => useOverlayStore.getState().setPreviewBg(true)}
+          onPointerUp={() => useOverlayStore.getState().setPreviewBg(false)}
+          onLostPointerCapture={() => useOverlayStore.getState().setPreviewBg(false)}
           className="flex-1 accent-blue-500"
         />
         <span className="text-xs text-white/50 w-7 text-right">{textBgOpacity}%</span>

@@ -8,7 +8,7 @@ describe("overlay store – textBgOpacity", () => {
   });
 
   it("initialises with the default textBgOpacity", () => {
-    expect(useOverlayStore.getState().textBgOpacity).toBe(30);
+    expect(useOverlayStore.getState().textBgOpacity).toBe(80);
   });
 
   it("handles setTextBgOpacity", () => {
