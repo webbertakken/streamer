@@ -1,13 +1,13 @@
 [
   {
-    "height": 292,
+    "height": 436,
     "instanceId": "chat-1",
-    "locked": false,
+    "locked": true,
     "typeId": "chat",
     "visible": true,
     "width": 412,
     "x": 2140,
-    "y": 778
+    "y": 634
   },
   {
     "height": 60,
@@ -20,7 +20,7 @@
     "y": 1250
   },
   {
-    "height": 502,
+    "height": 366,
     "instanceId": "chat-presence-1",
     "locked": false,
     "typeId": "chat-presence",
@@ -46,7 +46,7 @@
     "typeId": "subscription-alerts",
     "visible": true,
     "width": 350,
-    "x": 1392,
+    "x": 1400,
     "y": 1248
   },
   {
@@ -83,7 +83,7 @@
     "config": {
       "alignH": "center",
       "alignV": "center",
-      "backgroundColour": "#0b0a0a",
+      "backgroundColour": "transparent",
       "fontFamily": "Cascadia Code",
       "fontSize": 24,
       "showOutsideEditMode": true,
@@ -94,8 +94,8 @@
     "locked": false,
     "typeId": "stream-title",
     "visible": true,
-    "width": 928,
-    "x": 816,
+    "width": 1104,
+    "x": 728,
     "y": 56
   }
 ]
