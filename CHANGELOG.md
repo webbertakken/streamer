@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/webbertakken/streamer/compare/v0.7.0...v0.8.0) (2026-02-14)
+
+
+### Features
+
+* add configurable text background opacity ([#25](https://github.com/webbertakken/streamer/issues/25)) ([76425f3](https://github.com/webbertakken/streamer/commit/76425f3f8e5ef90f35f96868ec70aa16cd6b317c))
+* render native Twitch emotes in chat messages ([#24](https://github.com/webbertakken/streamer/issues/24)) ([f226216](https://github.com/webbertakken/streamer/commit/f226216c0b672b9b06aa5a509ab52dc5db1f0239))
+
+
+### Bug fixes
+
+* fall back to deterministic colour when chat username colour is empty ([#26](https://github.com/webbertakken/streamer/issues/26)) ([7bc7cdd](https://github.com/webbertakken/streamer/commit/7bc7cdd648853db929db48f0ff2ddd769a7fefda))
+* show live preview while dragging text BG opacity slider ([#28](https://github.com/webbertakken/streamer/issues/28)) ([0b4a653](https://github.com/webbertakken/streamer/commit/0b4a6539c1bb3237f479934e0a815ea68afa1d4f))
+
 ## [0.7.0](https://github.com/webbertakken/streamer/compare/v0.6.1...v0.7.0) (2026-02-13)
 
 
