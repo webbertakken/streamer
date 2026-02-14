@@ -10,6 +10,22 @@ const IRC_URL = "wss://irc-ws.chat.twitch.tv:443";
 const RECONNECT_DELAY_MS = 3000;
 const COMMAND_COOLDOWN_MS = 5000;
 
+/** Twitch's 15 default name colours assigned to users without a custom colour. */
+const TWITCH_DEFAULT_COLOURS = [
+  "#FF0000", "#0000FF", "#00FF00", "#B22222", "#FF7F50",
+  "#9ACD32", "#FF4500", "#2E8B57", "#DAA520", "#D2691E",
+  "#5F9EA0", "#1E90FF", "#FF69B4", "#8A2BE2", "#00FF7F",
+] as const;
+
+/** Pick a deterministic colour from the Twitch default palette based on the username. */
+export function defaultColourForUsername(username: string): string {
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = (hash * 31 + username.charCodeAt(i)) | 0;
+  }
+  return TWITCH_DEFAULT_COLOURS[Math.abs(hash) % TWITCH_DEFAULT_COLOURS.length];
+}
+
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let currentChannel: string | null = null;
@@ -154,7 +170,7 @@ function parsePRIVMSG(raw: string): { username: string; colour: string; text: st
 
   if (!displayName) return null;
 
-  return { username: displayName, colour: colour || "#FFFFFF", text, badges };
+  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, badges };
 }
 
 /** Parse a JOIN or PART line, returning the username or null. */

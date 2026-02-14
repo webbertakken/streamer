@@ -201,7 +201,7 @@ function createOverlayStore() {
 export const useOverlayStore: ReturnType<typeof createOverlayStore> =
   (import.meta.hot?.data?.overlayStore as ReturnType<typeof createOverlayStore>) ?? createOverlayStore();
 
-if (import.meta.hot) {
+if (import.meta.hot?.data) {
   import.meta.hot.data.overlayStore = useOverlayStore;
   import.meta.hot.accept();
 }

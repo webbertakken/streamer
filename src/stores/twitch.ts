@@ -42,7 +42,7 @@ function createTwitchStore() {
 export const useTwitchStore: ReturnType<typeof createTwitchStore> =
   (import.meta.hot?.data?.twitchStore as ReturnType<typeof createTwitchStore>) ?? createTwitchStore();
 
-if (import.meta.hot) {
+if (import.meta.hot?.data) {
   import.meta.hot.data.twitchStore = useTwitchStore;
   import.meta.hot.accept();
 }
