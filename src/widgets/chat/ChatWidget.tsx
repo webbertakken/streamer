@@ -6,6 +6,7 @@ import { useOverlayStore } from "../../stores/overlay";
 import { useTwitchStore } from "../../stores/twitch";
 import { sendChatMessage, defaultColourForUsername } from "../../twitch/irc";
 import { messages, listeners, messageOpacity } from "./chat-state";
+import type { ChatEmote } from "./chat-state";
 import { getBadgeUrl } from "../../twitch/badges";
 
 function useChatMessages() {
@@ -18,6 +19,57 @@ function useChatMessages() {
 }
 
 const DEFAULT_NAME_COLOUR = "#FFFFFF";
+const EMOTE_CDN = "https://static-cdn.jtvnw.net/emoticons/v2";
+
+export type MessageFragment =
+  | { type: "text"; text: string }
+  | { type: "emote"; id: string; name: string };
+
+/** Split message text into text and emote fragments based on parsed emote positions. */
+export function splitMessageFragments(text: string, emotes?: ChatEmote[]): MessageFragment[] {
+  if (!emotes || emotes.length === 0) return [{ type: "text", text }];
+
+  const sorted = [...emotes].sort((a, b) => a.start - b.start);
+  const fragments: MessageFragment[] = [];
+  let cursor = 0;
+
+  for (const emote of sorted) {
+    if (emote.start > cursor) {
+      fragments.push({ type: "text", text: text.slice(cursor, emote.start) });
+    }
+    fragments.push({ type: "emote", id: emote.id, name: text.slice(emote.start, emote.end + 1) });
+    cursor = emote.end + 1;
+  }
+
+  if (cursor < text.length) {
+    fragments.push({ type: "text", text: text.slice(cursor) });
+  }
+
+  return fragments;
+}
+
+function MessageText({ text, emotes }: { text: string; emotes?: ChatEmote[] }) {
+  const fragments = splitMessageFragments(text, emotes);
+
+  return (
+    <span className="text-white/90">
+      {": "}
+      {fragments.map((frag, i) =>
+        frag.type === "text" ? (
+          <span key={i}>{frag.text}</span>
+        ) : (
+          <img
+            key={i}
+            src={`${EMOTE_CDN}/${frag.id}/default/dark/1.0`}
+            alt={frag.name}
+            className="inline-block align-middle"
+            style={{ height: "1.5em" }}
+          />
+        ),
+      )}
+    </span>
+  );
+}
 
 function ChatContent({ instanceId }: { instanceId: string }) {
   const msgs = useChatMessages();
@@ -70,7 +122,7 @@ function ChatContent({ instanceId }: { instanceId: string }) {
           <span className="font-bold" style={{ color: twitchColours ? (msg.colour || defaultColourForUsername(msg.username)) : DEFAULT_NAME_COLOUR }}>
             {msg.username}
           </span>
-          <span className="text-white/90">: {msg.text}</span>
+          <MessageText text={msg.text} emotes={msg.emotes} />
         </div>
       ))}
     </div>
