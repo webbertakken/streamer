@@ -212,6 +212,70 @@ describe("splitMessageFragments", () => {
   });
 });
 
+describe("ChatWidget hideCommands", () => {
+  it("shows command messages when hideCommands is false", () => {
+    addTestMessage({ username: "Viewer", text: "!vote A3" });
+    addTestMessage({ username: "Chatter", text: "great stream!" });
+
+    render(<ChatWidget instanceId="chat-1" />);
+
+    expect(screen.getByText(/!vote A3/)).toBeTruthy();
+    expect(screen.getByText(/great stream!/)).toBeTruthy();
+  });
+
+  it("hides messages starting with ! when hideCommands is true", () => {
+    useOverlayStore.setState({
+      instances: [
+        {
+          instanceId: "chat-1",
+          typeId: "chat",
+          x: 0,
+          y: 0,
+          width: 400,
+          height: 300,
+          visible: true,
+          locked: false,
+          config: { hideCommands: true },
+        },
+      ],
+    });
+
+    addTestMessage({ username: "Voter", text: "!vote A3" });
+    addTestMessage({ username: "Suggester", text: "!suggest Play Minecraft" });
+    addTestMessage({ username: "Chatter", text: "great stream!" });
+
+    render(<ChatWidget instanceId="chat-1" />);
+
+    expect(screen.queryByText(/!vote A3/)).toBeNull();
+    expect(screen.queryByText(/!suggest Play Minecraft/)).toBeNull();
+    expect(screen.getByText(/great stream!/)).toBeTruthy();
+  });
+
+  it("preserves non-command messages that contain ! elsewhere", () => {
+    useOverlayStore.setState({
+      instances: [
+        {
+          instanceId: "chat-1",
+          typeId: "chat",
+          x: 0,
+          y: 0,
+          width: 400,
+          height: 300,
+          visible: true,
+          locked: false,
+          config: { hideCommands: true },
+        },
+      ],
+    });
+
+    addTestMessage({ username: "Excited", text: "wow! that was amazing!" });
+
+    render(<ChatWidget instanceId="chat-1" />);
+
+    expect(screen.getByText(/wow! that was amazing!/)).toBeTruthy();
+  });
+});
+
 describe("ChatWidget emote rendering", () => {
   it("renders emotes as images", () => {
     addTestMessage({

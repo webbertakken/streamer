@@ -26,10 +26,21 @@ export function defaultColourForUsername(username: string): string {
   return TWITCH_DEFAULT_COLOURS[Math.abs(hash) % TWITCH_DEFAULT_COLOURS.length];
 }
 
+/** Preserve IRC connection state across Vite HMR to avoid orphaned sockets. */
+interface IrcHmrState {
+  currentChannel: string | null;
+  botNick: string | null;
+}
+
+const ircHmr: IrcHmrState = (import.meta.hot?.data?.ircHmr as IrcHmrState) ?? {
+  currentChannel: null,
+  botNick: null,
+};
+
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let currentChannel: string | null = null;
-let botNick: string | null = null;
+let currentChannel: string | null = ircHmr.currentChannel;
+let botNick: string | null = ircHmr.botNick;
 
 interface IrcTokenResponse {
   token: string;
@@ -154,7 +165,7 @@ export function parseEmotes(tag: string): Array<{ id: string; start: number; end
 }
 
 /** Parse a PRIVMSG IRC line into a chat message, or null if not parseable. */
-export function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; badges: Array<{ setId: string; versionId: string }>; emotes: Array<{ id: string; start: number; end: number }> } | null {
+export function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; userId: string; badges: Array<{ setId: string; versionId: string }>; emotes: Array<{ id: string; start: number; end: number }> } | null {
   const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
   const tags = tagEnd > 0 ? raw.slice(1, tagEnd) : "";
   const rest = tagEnd > 0 ? raw.slice(tagEnd + 1) : raw;
@@ -170,6 +181,7 @@ export function parsePRIVMSG(raw: string): { username: string; colour: string; t
 
   let displayName = "";
   let colour = "";
+  let userId = "";
   let badges: Array<{ setId: string; versionId: string }> = [];
   let emotesTag = "";
   for (const pair of tags.split(";")) {
@@ -179,6 +191,7 @@ export function parsePRIVMSG(raw: string): { username: string; colour: string; t
     const value = pair.slice(eq + 1);
     if (key === "display-name") displayName = value;
     else if (key === "color") colour = value;
+    else if (key === "user-id") userId = value;
     else if (key === "badges" && value) {
       badges = value.split(",").filter(Boolean).map((entry) => {
         const [setId, versionId] = entry.split("/");
@@ -196,7 +209,7 @@ export function parsePRIVMSG(raw: string): { username: string; colour: string; t
 
   if (!displayName) return null;
 
-  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, badges, emotes: parseEmotes(emotesTag) };
+  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, userId, badges, emotes: parseEmotes(emotesTag) };
 }
 
 /** Parse a JOIN or PART line, returning the username or null. */
@@ -242,27 +255,27 @@ function handleMessage(event: MessageEvent<string>) {
     const parsed = parsePRIVMSG(line);
     if (parsed) {
       const isOwnEcho = botNick && parsed.username.toLowerCase() === botNick && recentSentTexts.has(parsed.text);
+      const timestamp = Date.now();
 
+      // Own echoes: display + event bus already handled by sendChatMessage — skip.
       if (!isOwnEcho) {
-        const msg = {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        pushChatMessage({
+          id: `${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
           username: parsed.username,
           colour: parsed.colour,
           text: parsed.text,
           badges: parsed.badges,
           emotes: parsed.emotes.length > 0 ? parsed.emotes : undefined,
-          timestamp: Date.now(),
-        };
-        pushChatMessage(msg);
+          timestamp,
+        });
+        handleChatCommand(parsed.text);
         publish({
           type: "chat",
-          timestamp: msg.timestamp,
-          data: { username: parsed.username, text: parsed.text },
+          timestamp,
+          data: { username: parsed.username, text: parsed.text, userId: parsed.userId },
         });
       }
 
-      // Only process commands from other users (own messages handled in sendChatMessage)
-      if (!isOwnEcho) handleChatCommand(parsed.text);
       continue;
     }
 
@@ -348,13 +361,22 @@ export function sendChatMessage(text: string): void {
   recentSentTexts.add(text);
   setTimeout(() => recentSentTexts.delete(text), 5000);
 
-  const { username, userColour } = useTwitchStore.getState();
+  const { username, userColour, userId } = useTwitchStore.getState();
+  const timestamp = Date.now();
   pushChatMessage({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
     username: username || botNick || "me",
     colour: userColour,
     text,
-    timestamp: Date.now(),
+    timestamp,
+  });
+
+  // Publish to event bus immediately for own messages (don't wait for IRC echo).
+  // The echo handler skips the duplicate publish for isOwnEcho messages.
+  publish({
+    type: "chat",
+    timestamp,
+    data: { username: username || botNick || "me", text, userId },
   });
 
   handleChatCommand(text);
@@ -373,4 +395,28 @@ export function disconnectChat(): void {
     ws = null;
   }
   useTwitchStore.getState().setConnected(false);
+}
+
+// ---------------------------------------------------------------------------
+// HMR preservation — close orphaned sockets on module reload
+// ---------------------------------------------------------------------------
+
+if (import.meta.hot?.data) {
+  import.meta.hot.dispose(() => {
+    // Save channel state so the new module can reconnect
+    ircHmr.currentChannel = currentChannel;
+    ircHmr.botNick = botNick;
+    // Close the socket so the old handleMessage listener stops firing
+    if (ws) { ws.close(); ws = null; }
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  });
+
+  import.meta.hot.data.ircHmr = ircHmr;
+
+  // Reconnect if there was an active channel before HMR
+  if (currentChannel && !ws) {
+    connectChat(currentChannel);
+  }
+
+  import.meta.hot.accept();
 }

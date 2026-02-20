@@ -31,6 +31,7 @@ function getSubscriptions(): EventSubSubscription[] {
     { type: "channel.ban", version: "1", condition: { broadcaster_user_id: broadcasterId } },
     { type: "channel.unban", version: "1", condition: { broadcaster_user_id: broadcasterId } },
     { type: "channel.cheer", version: "1", condition: { broadcaster_user_id: broadcasterId } },
+    { type: "channel.channel_points_custom_reward_redemption.add", version: "1", condition: { broadcaster_user_id: broadcasterId } },
   ];
 }
 
@@ -47,6 +48,7 @@ function mapEventType(twitchType: string): ChannelEventType | null {
     "channel.ban": "ban",
     "channel.unban": "unban",
     "channel.cheer": "cheer",
+    "channel.channel_points_custom_reward_redemption.add": "channel_points_redemption",
   };
   return mapping[twitchType] ?? null;
 }

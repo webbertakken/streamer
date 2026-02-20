@@ -91,6 +91,26 @@ describe("parsePRIVMSG", () => {
 
     expect(result!.colour).toBe("#00FF7F");
   });
+
+  it("extracts userId from user-id tag", () => {
+    const raw =
+      "@color=#FF4500;display-name=TestUser;user-id=12345 :testuser!testuser@testuser.tmi.twitch.tv PRIVMSG #channel :Hello";
+
+    const result = parsePRIVMSG(raw);
+
+    expect(result).not.toBeNull();
+    expect(result!.userId).toBe("12345");
+  });
+
+  it("returns empty userId when user-id tag is absent", () => {
+    const raw =
+      "@color=#FF4500;display-name=TestUser :testuser!testuser@testuser.tmi.twitch.tv PRIVMSG #channel :Hello";
+
+    const result = parsePRIVMSG(raw);
+
+    expect(result).not.toBeNull();
+    expect(result!.userId).toBe("");
+  });
 });
 
 describe("parseColourTag", () => {
