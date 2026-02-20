@@ -9,6 +9,18 @@ import { messages, listeners, messageOpacity } from "./chat-state";
 import type { ChatEmote } from "./chat-state";
 import { getBadgeUrl } from "../../twitch/badges";
 
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+interface ChatConfig {
+  hideCommands: boolean;
+}
+
+const DEFAULT_CHAT_CONFIG: ChatConfig = {
+  hideCommands: false,
+};
+
 function useChatMessages() {
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   useEffect(() => {
@@ -72,7 +84,8 @@ function MessageText({ text, emotes }: { text: string; emotes?: ChatEmote[] }) {
 }
 
 function ChatContent({ instanceId }: { instanceId: string }) {
-  const msgs = useChatMessages();
+  const allMsgs = useChatMessages();
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
   const editMode = useOverlayStore((s) => s.editMode);
   const twitchColours = useOverlayStore((s) => s.twitchColours);
   const borderRadius = useOverlayStore((s) => s.borderRadius);
@@ -81,6 +94,9 @@ function ChatContent({ instanceId }: { instanceId: string }) {
   const alignCls = contentAlignClass(align);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(Date.now());
+
+  const config: ChatConfig = { ...DEFAULT_CHAT_CONFIG, ...(instance?.config as Partial<ChatConfig>) };
+  const msgs = config.hideCommands ? allMsgs.filter((m) => !m.text.startsWith("!")) : allMsgs;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -212,6 +228,34 @@ function ChatInputContainer({ instanceId }: { instanceId: string }) {
         className="max-w-full text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-40"
         style={{ backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, fieldSizing: "content" } as React.CSSProperties}
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Settings component
+// ---------------------------------------------------------------------------
+
+export function ChatSettings({ instanceId }: { instanceId: string }) {
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
+  const updateInstance = useOverlayStore((s) => s.updateInstance);
+  const config: ChatConfig = { ...DEFAULT_CHAT_CONFIG, ...(instance?.config as Partial<ChatConfig>) };
+
+  function update(partial: Partial<ChatConfig>) {
+    updateInstance(instanceId, { config: { ...config, ...partial } });
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-1.5 text-xs text-white/80 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={config.hideCommands}
+          onChange={(e) => update({ hideCommands: e.target.checked })}
+          className="accent-blue-500"
+        />
+        Hide ! commands
+      </label>
     </div>
   );
 }

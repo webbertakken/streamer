@@ -7,6 +7,7 @@ mod event_log;
 mod helix;
 mod presets;
 mod settings;
+mod suggestions;
 
 /// Information about a connected display monitor.
 #[derive(serde::Serialize)]
@@ -131,6 +132,17 @@ fn write_default_settings(data: String) -> Result<(), String> {
     }
 }
 
+/// Write a frontend log message to the application log file.
+#[tauri::command]
+fn log_frontend(level: String, message: String) {
+    match level.as_str() {
+        "error" => tracing::error!("[frontend] {message}"),
+        "warn" => tracing::warn!("[frontend] {message}"),
+        "debug" => tracing::debug!("[frontend] {message}"),
+        _ => tracing::info!("[frontend] {message}"),
+    }
+}
+
 /// Open the application log folder in the system file explorer.
 #[tauri::command]
 fn open_log_folder() -> Result<(), String> {
@@ -159,6 +171,7 @@ pub fn run() {
             list_monitors,
             set_ignore_cursor,
             get_cursor_position,
+            log_frontend,
             auth::auth_device_start,
             auth::auth_device_poll,
             auth::auth_status,
@@ -182,6 +195,8 @@ pub fn run() {
             presets::delete_preset,
             presets::export_preset,
             presets::import_preset,
+            suggestions::read_suggestions,
+            suggestions::write_suggestions,
         ])
         .setup(|app| {
             let data_dir = dirs::home_dir()
@@ -263,6 +278,7 @@ pub fn run() {
 
             app.manage(Arc::new(auth::AuthState::new(data_dir.clone())));
             app.manage(settings::SettingsState::new(data_dir.clone()));
+            app.manage(suggestions::SuggestionsState::new(data_dir.clone()));
 
             let log_dir = data_dir.join("logs");
             app.manage(event_log::EventLogState::new(log_dir));

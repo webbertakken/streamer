@@ -31,6 +31,7 @@ const badgeColours: Record<ChannelEventType, string> = {
   channel_update: "bg-indigo-500",
   follower_count_update: "bg-emerald-500",
   viewer_count_update: "bg-sky-500",
+  channel_points_redemption: "bg-amber-500",
 };
 
 function summarise(event: ChannelEvent): string {
@@ -66,6 +67,8 @@ function summarise(event: ChannelEvent): string {
       return `Follower count: ${d.total}`;
     case "viewer_count_update":
       return `Viewer count: ${d.count}`;
+    case "channel_points_redemption":
+      return `${d.user_name || d.username || "Someone"} redeemed ${(d.reward as Record<string, unknown>)?.title || "a reward"}`;
     default:
       return JSON.stringify(d);
   }

@@ -46,7 +46,7 @@ export function getWidget(id: string): WidgetDefinition | undefined {
 }
 
 /* Register all built-in widgets */
-import { ChatWidget } from "./chat/ChatWidget";
+import { ChatWidget, ChatSettings } from "./chat/ChatWidget";
 import { ViewerCountWidget } from "./viewer-count/ViewerCountWidget";
 import { FollowerAlertWidget } from "./follower-alerts/FollowerAlertWidget";
 import { EventFeedWidget } from "./event-feed/EventFeedWidget";
@@ -58,8 +58,9 @@ import { RaidAlertWidget } from "./raid-alerts/RaidAlertWidget";
 import { SubAlertWidget } from "./subscription-alerts/SubAlertWidget";
 import { StreamInfoWidget, StreamInfoSettings } from "./stream-info/StreamInfoWidget";
 import { StreamTitleWidget, StreamTitleSettings, DEFAULT_CONFIG as STREAM_TITLE_DEFAULT_CONFIG } from "./stream-title/StreamTitleWidget";
+import { SuggestionBoxWidget, SuggestionBoxSettings } from "./suggestion-box/SuggestionBoxWidget";
 
-registerWidget({ id: "chat", name: "Chat", component: ChatWidget, singleton: true, defaults: { x: 8, y: 840, width: 416, height: 296 } });
+registerWidget({ id: "chat", name: "Chat", component: ChatWidget, singleton: true, defaults: { x: 8, y: 840, width: 416, height: 296 }, defaultConfig: { hideCommands: false }, settingsComponent: ChatSettings });
 registerWidget({ id: "viewer-count", name: "Viewer count", component: ViewerCountWidget, singleton: true, defaults: { x: 1192, y: 24, width: 200, height: 64 } });
 registerWidget({ id: "follower-alerts", name: "Follower alerts", component: FollowerAlertWidget, singleton: true, defaults: { x: 1112, y: 1000, width: 352, height: 120 } });
 registerWidget({ id: "event-feed", name: "Event feed", component: EventFeedWidget, singleton: true, defaults: { x: 2256, y: 896, width: 296, height: 272 } });
@@ -71,3 +72,4 @@ registerWidget({ id: "raid-alerts", name: "Raid alerts", component: RaidAlertWid
 registerWidget({ id: "subscription-alerts", name: "Subscription alerts", component: SubAlertWidget, singleton: true, defaults: { x: 1112, y: 760, width: 352, height: 120 } });
 registerWidget({ id: "stream-info", name: "Stream info", component: StreamInfoWidget, defaults: { x: 1192, y: 96, width: 304, height: 152 }, defaultConfig: { showTitle: true, showGame: true, showUptime: true, showViewers: false }, settingsComponent: StreamInfoSettings });
 registerWidget({ id: "stream-title", name: "Stream title", component: StreamTitleWidget, singleton: true, defaults: { x: 8, y: 8, width: 400, height: 48 }, defaultConfig: { ...STREAM_TITLE_DEFAULT_CONFIG }, settingsComponent: StreamTitleSettings });
+registerWidget({ id: "suggestion-box", name: "Suggestion box", component: SuggestionBoxWidget, singleton: true, defaults: { x: 8, y: 560, width: 400, height: 260 }, defaultConfig: { rewardId: "", voteTrigger: "!vote", suggestTrigger: "!suggest", maxActive: 7, maxDone: 3, autoHideDuration: 30 }, settingsComponent: SuggestionBoxSettings });
