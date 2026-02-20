@@ -53,4 +53,4 @@
 - [x] 8.2 Run `yarn typecheck` and fix any TypeScript errors
 - [x] 8.3 Run `yarn lint` and fix any linting issues
 - [x] 8.4 Run `yarn test` and ensure all tests pass (including new tests from 3.3 and 5.7)
-- [ ] 8.5 Verify the complete flow end-to-end: redemption event -> suggestion created with hex ID -> vote by hex ID -> toggle done/active -> strikethrough + auto-hide -> persistence across restart with hex ID preservation
+- [x] 8.5 Verify the complete flow end-to-end: redemption event -> suggestion created with hex ID -> vote by hex ID -> toggle done/active -> strikethrough + auto-hide -> persistence across restart with hex ID preservation
