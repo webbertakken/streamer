@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/webbertakken/streamer/compare/v0.8.0...v0.9.0) (2026-02-20)
+
+
+### Features
+
+* add suggestion box widget ([#29](https://github.com/webbertakken/streamer/issues/29)) ([5febe0b](https://github.com/webbertakken/streamer/commit/5febe0b9b84eb104b98f6831b6b12e229e20d4a2))
+
 ## [0.8.0](https://github.com/webbertakken/streamer/compare/v0.7.0...v0.8.0) (2026-02-14)
 
 
