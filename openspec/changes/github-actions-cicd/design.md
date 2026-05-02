@@ -1,6 +1,6 @@
 ## Context
 
-The streamer app is a Tauri v2 desktop overlay (React + Rust). Version `0.1.0` is tracked in three files: `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml`. There is no CI/CD — builds and releases are entirely manual. The repository uses Yarn 4 with Volta pinning and is hosted on GitHub.
+The streamer app is a Tauri v2 desktop overlay (React + Rust). Version `0.1.0` is tracked in three files: `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml`. There is no CI/CD — builds and releases are entirely manual. The repository uses Yarn 4 (Corepack via `packageManager`) with Node pinned by mise (`mise.toml`) and is hosted on GitHub.
 
 ## Goals / Non-goals
 
