@@ -44,7 +44,8 @@ streamer/
 | Testing | Vitest 4, Testing Library, jsdom |
 | Linting | oxlint |
 | Build | Vite + tauri-build |
-| Package manager | Yarn 4.9.2 (via Volta) |
+| Node version | mise (`mise.toml`) |
+| Package manager | Yarn 4.9.2 (Corepack via `packageManager`) |
 | Pre-commit | Husky + lint-staged (oxlint on src/**/*.{ts,tsx}) |
 | CI | GitHub Actions (checks.yml, build.yml, commit-lint.yml, release-please.yml) |
 
