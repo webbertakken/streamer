@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/webbertakken/streamer/compare/v0.9.0...v0.9.1) (2026-05-04)
+
+
+### Maintenance
+
+* migrate to mise + bump yarn to 4.14.1 + cache pattern ([#31](https://github.com/webbertakken/streamer/issues/31)) ([4c2789e](https://github.com/webbertakken/streamer/commit/4c2789eaec563ca17d94aeb04ab42caa6d236175))
+* quality-tightening (oxfmt + oxlint + husky) ([#33](https://github.com/webbertakken/streamer/issues/33)) ([b333b71](https://github.com/webbertakken/streamer/commit/b333b71fbaa98bfcb6c92b6a3702c7df66cf1f2d))
+
 ## [0.9.0](https://github.com/webbertakken/streamer/compare/v0.8.0...v0.9.0) (2026-02-20)
 
 ### Features
