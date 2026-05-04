@@ -1,51 +1,53 @@
-import { useEffect, useState, useCallback } from "react";
-import { Widget } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { subscribe, type ChannelEvent } from "../../events/bus";
-import { useOverlayStore } from "../../stores/overlay";
+import { useEffect, useState, useCallback } from 'react'
+import { subscribe, type ChannelEvent } from '../../events/bus'
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget } from '../Widget'
 
 export interface FollowerAlert {
-  id: string;
-  username: string;
+  id: string
+  username: string
 }
 
-const alertQueue: FollowerAlert[] = [];
-const listeners = new Set<() => void>();
+const alertQueue: FollowerAlert[] = []
+const listeners = new Set<() => void>()
 
 /** Queue a follower alert to be displayed */
 export function pushFollowerAlert(username: string) {
-  alertQueue.push({ id: crypto.randomUUID(), username });
-  listeners.forEach((fn) => fn());
+  alertQueue.push({ id: crypto.randomUUID(), username })
+  listeners.forEach((fn) => fn())
 }
 
 function FollowerAlertContent() {
-  const borderRadius = useOverlayStore((s) => s.borderRadius);
-  const [current, setCurrent] = useState<FollowerAlert | null>(null);
+  const borderRadius = useOverlayStore((s) => s.borderRadius)
+  const [current, setCurrent] = useState<FollowerAlert | null>(null)
 
   const showNext = useCallback(() => {
-    const next = alertQueue.shift();
+    const next = alertQueue.shift()
     if (next) {
-      setCurrent(next);
-      setTimeout(() => setCurrent(null), 4000);
+      setCurrent(next)
+      setTimeout(() => setCurrent(null), 4000)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const check = () => {
-      if (!current && alertQueue.length > 0) showNext();
-    };
-    listeners.add(check);
-    return () => { listeners.delete(check); };
-  }, [current, showNext]);
+      if (!current && alertQueue.length > 0) showNext()
+    }
+    listeners.add(check)
+    return () => {
+      listeners.delete(check)
+    }
+  }, [current, showNext])
 
   useEffect(() => {
     return subscribe((event: ChannelEvent) => {
-      if (event.type !== "follow") return;
-      pushFollowerAlert(event.data.user_name as string);
-    });
-  }, []);
+      if (event.type !== 'follow') return
+      pushFollowerAlert(event.data.user_name as string)
+    })
+  }, [])
 
-  if (!current) return <div className="h-full" />;
+  if (!current) return <div className="h-full" />
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -58,7 +60,7 @@ function FollowerAlertContent() {
         <div className="text-white text-xl font-bold mt-1">{current.username}</div>
       </div>
     </div>
-  );
+  )
 }
 
 export function FollowerAlertWidget({ instanceId }: WidgetInstanceProps) {
@@ -66,5 +68,5 @@ export function FollowerAlertWidget({ instanceId }: WidgetInstanceProps) {
     <Widget instanceId={instanceId} name="Follower alerts">
       <FollowerAlertContent />
     </Widget>
-  );
+  )
 }

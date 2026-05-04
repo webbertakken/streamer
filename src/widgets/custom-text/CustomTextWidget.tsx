@@ -1,21 +1,21 @@
-import { Widget } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { useOverlayStore } from "../../stores/overlay";
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget } from '../Widget'
 
 export interface CustomTextConfig {
-  text: string;
-  fontSize: number;
-  colour: string;
-  fontFamily: string;
-  textAlign: CanvasTextAlign;
+  text: string
+  fontSize: number
+  colour: string
+  fontFamily: string
+  textAlign: CanvasTextAlign
 }
 
 function CustomTextContent({ instanceId }: { instanceId: string }) {
-  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
-  const editMode = useOverlayStore((s) => s.editMode);
-  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
-  const config = instance?.config as CustomTextConfig | undefined;
-  if (!config) return null;
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId))
+  const editMode = useOverlayStore((s) => s.editMode)
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity)
+  const config = instance?.config as CustomTextConfig | undefined
+  if (!config) return null
 
   return (
     <div
@@ -29,19 +29,25 @@ function CustomTextContent({ instanceId }: { instanceId: string }) {
     >
       <span
         className="px-2 py-0.5"
-        style={editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" }}
-      >{config.text}</span>
+        style={
+          editMode
+            ? undefined
+            : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: '0.25rem' }
+        }
+      >
+        {config.text}
+      </span>
     </div>
-  );
+  )
 }
 
 export function CustomTextSettings({ instanceId }: { instanceId: string }) {
-  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
-  const updateInstance = useOverlayStore((s) => s.updateInstance);
-  const config = (instance?.config ?? {}) as unknown as CustomTextConfig;
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId))
+  const updateInstance = useOverlayStore((s) => s.updateInstance)
+  const config = (instance?.config ?? {}) as unknown as CustomTextConfig
 
   function update(partial: Partial<CustomTextConfig>) {
-    updateInstance(instanceId, { config: { ...config, ...partial } });
+    updateInstance(instanceId, { config: { ...config, ...partial } })
   }
 
   return (
@@ -50,7 +56,7 @@ export function CustomTextSettings({ instanceId }: { instanceId: string }) {
         <label className="text-xs text-white/60 block mb-0.5">Text</label>
         <input
           type="text"
-          value={config.text ?? ""}
+          value={config.text ?? ''}
           onChange={(e) => update({ text: e.target.value })}
           className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400"
         />
@@ -71,7 +77,7 @@ export function CustomTextSettings({ instanceId }: { instanceId: string }) {
           <label className="text-xs text-white/60 block mb-0.5">Colour</label>
           <input
             type="color"
-            value={config.colour ?? "#ffffff"}
+            value={config.colour ?? '#ffffff'}
             onChange={(e) => update({ colour: e.target.value })}
             className="w-full h-7 bg-white/10 rounded cursor-pointer"
           />
@@ -80,7 +86,7 @@ export function CustomTextSettings({ instanceId }: { instanceId: string }) {
       <div>
         <label className="text-xs text-white/60 block mb-0.5">Font</label>
         <select
-          value={config.fontFamily ?? "sans-serif"}
+          value={config.fontFamily ?? 'sans-serif'}
           onChange={(e) => update({ fontFamily: e.target.value })}
           className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400"
         >
@@ -93,7 +99,7 @@ export function CustomTextSettings({ instanceId }: { instanceId: string }) {
       <div>
         <label className="text-xs text-white/60 block mb-0.5">Align</label>
         <select
-          value={config.textAlign ?? "center"}
+          value={config.textAlign ?? 'center'}
           onChange={(e) => update({ textAlign: e.target.value as CanvasTextAlign })}
           className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400"
         >
@@ -103,7 +109,7 @@ export function CustomTextSettings({ instanceId }: { instanceId: string }) {
         </select>
       </div>
     </div>
-  );
+  )
 }
 
 export function CustomTextWidget({ instanceId }: WidgetInstanceProps) {
@@ -113,5 +119,5 @@ export function CustomTextWidget({ instanceId }: WidgetInstanceProps) {
         <CustomTextContent instanceId={instanceId} />
       </div>
     </Widget>
-  );
+  )
 }

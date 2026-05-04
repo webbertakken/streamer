@@ -1,8 +1,11 @@
 # project-scaffold Specification
 
 ## Purpose
+
 TBD - created by archiving change scaffold-tauri-react-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Tauri application initialised
 
 The project MUST contain a working Tauri v2 application with a React + TypeScript frontend.
@@ -41,4 +44,3 @@ The project MUST include an MIT licence file at the repository root.
 
 - **WHEN** a user views the repository root
 - **THEN** a `LICENCE` file exists containing the MIT licence text
-

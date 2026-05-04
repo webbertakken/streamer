@@ -7,11 +7,13 @@ There is no mechanism to remove individual messages by age today.
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Messages automatically disappear ~60 seconds after arrival
 - Smooth visual fade-out so disappearance isn't jarring
 - Expired messages removed from memory to avoid phantom state
 
 **Non-Goals:**
+
 - Making TTL user-configurable (can be added later; hardcode 60 s for now)
 - Changing the 200-message hard cap behaviour
 - Animating message _arrival_ (only departure)

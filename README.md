@@ -4,9 +4,9 @@ A transparent desktop overlay for live streams, built with Tauri.
 
 ## Hotkeys
 
-| Shortcut | Action |
-|---|---|
-| `Ctrl+Shift+I` | Toggle edit mode |
+| Shortcut       | Action                    |
+| -------------- | ------------------------- |
+| `Ctrl+Shift+I` | Toggle edit mode          |
 | `Ctrl+Shift+O` | Toggle overlay visibility |
 
 ## Edit mode

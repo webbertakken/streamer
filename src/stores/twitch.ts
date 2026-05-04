@@ -1,30 +1,30 @@
-import { create } from "zustand";
+import { create } from 'zustand'
 
 interface TwitchStore {
-  channel: string;
-  connected: boolean;
-  eventSubConnected: boolean;
-  authenticated: boolean;
-  username: string;
-  userId: string;
-  userColour: string;
-  setChannel: (channel: string) => void;
-  setConnected: (connected: boolean) => void;
-  setEventSubConnected: (connected: boolean) => void;
-  setAuth: (authenticated: boolean, username: string) => void;
-  setUserId: (userId: string) => void;
-  setUserColour: (colour: string) => void;
+  channel: string
+  connected: boolean
+  eventSubConnected: boolean
+  authenticated: boolean
+  username: string
+  userId: string
+  userColour: string
+  setChannel: (channel: string) => void
+  setConnected: (connected: boolean) => void
+  setEventSubConnected: (connected: boolean) => void
+  setAuth: (authenticated: boolean, username: string) => void
+  setUserId: (userId: string) => void
+  setUserColour: (colour: string) => void
 }
 
 function createTwitchStore() {
   return create<TwitchStore>((set) => ({
-    channel: "",
+    channel: '',
     connected: false,
     eventSubConnected: false,
     authenticated: false,
-    username: "",
-    userId: "",
-    userColour: "#FFFFFF",
+    username: '',
+    userId: '',
+    userColour: '#FFFFFF',
     setChannel: (channel) => set({ channel }),
     setConnected: (connected) => set({ connected }),
     setEventSubConnected: (connected) => set({ eventSubConnected: connected }),
@@ -36,13 +36,14 @@ function createTwitchStore() {
       })),
     setUserId: (userId) => set({ userId }),
     setUserColour: (colour) => set({ userColour: colour }),
-  }));
+  }))
 }
 
 export const useTwitchStore: ReturnType<typeof createTwitchStore> =
-  (import.meta.hot?.data?.twitchStore as ReturnType<typeof createTwitchStore>) ?? createTwitchStore();
+  (import.meta.hot?.data?.twitchStore as ReturnType<typeof createTwitchStore>) ??
+  createTwitchStore()
 
 if (import.meta.hot?.data) {
-  import.meta.hot.data.twitchStore = useTwitchStore;
-  import.meta.hot.accept();
+  import.meta.hot.data.twitchStore = useTwitchStore
+  import.meta.hot.accept()
 }

@@ -1,89 +1,89 @@
-import { useEffect, useState, useRef } from "react";
-import { Widget } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { useOverlayStore } from "../../stores/overlay";
-import { subscribe } from "../../events/bus";
+import { useEffect, useState, useRef } from 'react'
+import { subscribe } from '../../events/bus'
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget } from '../Widget'
 
 export interface StreamInfoConfig {
-  showTitle: boolean;
-  showGame: boolean;
-  showUptime: boolean;
-  showViewers: boolean;
+  showTitle: boolean
+  showGame: boolean
+  showUptime: boolean
+  showViewers: boolean
 }
 
 /** Formats elapsed milliseconds as "Xh Ym" or "Xm Ys". */
 function formatUptime(elapsedMs: number): string {
-  const totalSeconds = Math.floor(elapsedMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const totalSeconds = Math.floor(elapsedMs / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
 
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m ${seconds}s`;
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m ${seconds}s`
 }
 
 function StreamInfoContent({ instanceId }: { instanceId: string }) {
-  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
-  const config = instance?.config as StreamInfoConfig | undefined;
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId))
+  const config = instance?.config as StreamInfoConfig | undefined
 
-  const [title, setTitle] = useState<string | null>(null);
-  const [game, setGame] = useState<string | null>(null);
-  const [streamStartedAt, setStreamStartedAt] = useState<Date | null>(null);
-  const [isLive, setIsLive] = useState(false);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [uptimeStr, setUptimeStr] = useState("Offline");
+  const [title, setTitle] = useState<string | null>(null)
+  const [game, setGame] = useState<string | null>(null)
+  const [streamStartedAt, setStreamStartedAt] = useState<Date | null>(null)
+  const [isLive, setIsLive] = useState(false)
+  const [viewerCount, setViewerCount] = useState(0)
+  const [uptimeStr, setUptimeStr] = useState('Offline')
 
   // Subscribe to event bus
   useEffect(() => {
     return subscribe((event) => {
       switch (event.type) {
-        case "channel_update":
-          setTitle(event.data.title as string);
-          setGame(event.data.category_name as string);
-          break;
-        case "stream_online":
-          setIsLive(true);
-          setStreamStartedAt(new Date(event.data.started_at as string));
-          break;
-        case "stream_offline":
-          setIsLive(false);
-          setStreamStartedAt(null);
-          break;
-        case "viewer_count_update":
-          setViewerCount(event.data.count as number);
-          break;
+        case 'channel_update':
+          setTitle(event.data.title as string)
+          setGame(event.data.category_name as string)
+          break
+        case 'stream_online':
+          setIsLive(true)
+          setStreamStartedAt(new Date(event.data.started_at as string))
+          break
+        case 'stream_offline':
+          setIsLive(false)
+          setStreamStartedAt(null)
+          break
+        case 'viewer_count_update':
+          setViewerCount(event.data.count as number)
+          break
       }
-    });
-  }, []);
+    })
+  }, [])
 
   // Update uptime display every second
-  const streamStartedAtRef = useRef(streamStartedAt);
-  const isLiveRef = useRef(isLive);
-  streamStartedAtRef.current = streamStartedAt;
-  isLiveRef.current = isLive;
+  const streamStartedAtRef = useRef(streamStartedAt)
+  const isLiveRef = useRef(isLive)
+  streamStartedAtRef.current = streamStartedAt
+  isLiveRef.current = isLive
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (isLiveRef.current && streamStartedAtRef.current) {
-        const elapsed = Date.now() - streamStartedAtRef.current.getTime();
-        setUptimeStr(formatUptime(elapsed));
+        const elapsed = Date.now() - streamStartedAtRef.current.getTime()
+        setUptimeStr(formatUptime(elapsed))
       } else {
-        setUptimeStr("Offline");
+        setUptimeStr('Offline')
       }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
-  if (!config) return null;
+  if (!config) return null
 
-  const hasData = title !== null || game !== null || isLive;
+  const hasData = title !== null || game !== null || isLive
 
   if (!hasData && !config.showUptime && !config.showViewers) {
     return (
       <div className="h-full flex items-center justify-center text-white/40 text-xs">
         Waiting for data...
       </div>
-    );
+    )
   }
 
   return (
@@ -109,16 +109,16 @@ function StreamInfoContent({ instanceId }: { instanceId: string }) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 export function StreamInfoSettings({ instanceId }: { instanceId: string }) {
-  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId));
-  const updateInstance = useOverlayStore((s) => s.updateInstance);
-  const config = (instance?.config ?? {}) as unknown as StreamInfoConfig;
+  const instance = useOverlayStore((s) => s.instances.find((i) => i.instanceId === instanceId))
+  const updateInstance = useOverlayStore((s) => s.updateInstance)
+  const config = (instance?.config ?? {}) as unknown as StreamInfoConfig
 
   function update(partial: Partial<StreamInfoConfig>) {
-    updateInstance(instanceId, { config: { ...config, ...partial } });
+    updateInstance(instanceId, { config: { ...config, ...partial } })
   }
 
   return (
@@ -160,7 +160,7 @@ export function StreamInfoSettings({ instanceId }: { instanceId: string }) {
         Show viewers
       </label>
     </div>
-  );
+  )
 }
 
 export function StreamInfoWidget({ instanceId }: WidgetInstanceProps) {
@@ -168,5 +168,5 @@ export function StreamInfoWidget({ instanceId }: WidgetInstanceProps) {
     <Widget instanceId={instanceId} name="Stream info">
       <StreamInfoContent instanceId={instanceId} />
     </Widget>
-  );
+  )
 }

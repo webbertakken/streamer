@@ -13,12 +13,14 @@ There is no CI/CD pipeline — builds are manual and there's no automated versio
 ## Capabilities
 
 ### New capabilities
+
 - `ci-release`: Automated versioning, changelog generation, and GitHub Release creation via Release Please driven by conventional commits
 - `ci-build`: Cross-platform Tauri builds (Windows x64, Linux x64, Linux arm64, macOS x64, macOS arm64) triggered by version tags, with artifacts on GitHub Releases
 - `ci-commit-lint`: PR title validation enforcing conventional commit format for squash-merge workflows
 - `ci-lint-workflows`: Validation of GitHub Actions workflow files using actionlint
 
 ### Modified capabilities
+
 _None — no existing specs are affected._
 
 ## Impact

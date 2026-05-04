@@ -1,142 +1,157 @@
-import { invoke } from "@tauri-apps/api/core";
-import { pushChatMessage } from "../widgets/chat/chat-state";
-import { useTwitchStore } from "../stores/twitch";
-import { useOverlayStore } from "../stores/overlay";
-import { publish, subscribe as subscribeBus } from "../events/bus";
-import { useViewerCount } from "../widgets/viewer-count/ViewerCountWidget";
-import { fetchStreamInfo } from "./helix";
+import { invoke } from '@tauri-apps/api/core'
+import { publish, subscribe as subscribeBus } from '../events/bus'
+import { useOverlayStore } from '../stores/overlay'
+import { useTwitchStore } from '../stores/twitch'
+import { pushChatMessage } from '../widgets/chat/chat-state'
+import { useViewerCount } from '../widgets/viewer-count/ViewerCountWidget'
+import { fetchStreamInfo } from './helix'
 
-const IRC_URL = "wss://irc-ws.chat.twitch.tv:443";
-const RECONNECT_DELAY_MS = 3000;
-const COMMAND_COOLDOWN_MS = 5000;
+const IRC_URL = 'wss://irc-ws.chat.twitch.tv:443'
+const RECONNECT_DELAY_MS = 3000
+const COMMAND_COOLDOWN_MS = 5000
 
 /** Twitch's 15 default name colours assigned to users without a custom colour. */
 const TWITCH_DEFAULT_COLOURS = [
-  "#FF0000", "#0000FF", "#00FF00", "#B22222", "#FF7F50",
-  "#9ACD32", "#FF4500", "#2E8B57", "#DAA520", "#D2691E",
-  "#5F9EA0", "#1E90FF", "#FF69B4", "#8A2BE2", "#00FF7F",
-] as const;
+  '#FF0000',
+  '#0000FF',
+  '#00FF00',
+  '#B22222',
+  '#FF7F50',
+  '#9ACD32',
+  '#FF4500',
+  '#2E8B57',
+  '#DAA520',
+  '#D2691E',
+  '#5F9EA0',
+  '#1E90FF',
+  '#FF69B4',
+  '#8A2BE2',
+  '#00FF7F',
+] as const
 
 /** Pick a deterministic colour from the Twitch default palette based on the username. */
 export function defaultColourForUsername(username: string): string {
-  let hash = 0;
+  let hash = 0
   for (let i = 0; i < username.length; i++) {
-    hash = (hash * 31 + username.charCodeAt(i)) | 0;
+    hash = (hash * 31 + username.charCodeAt(i)) | 0
   }
-  return TWITCH_DEFAULT_COLOURS[Math.abs(hash) % TWITCH_DEFAULT_COLOURS.length];
+  return TWITCH_DEFAULT_COLOURS[Math.abs(hash) % TWITCH_DEFAULT_COLOURS.length]
 }
 
 /** Preserve IRC connection state across Vite HMR to avoid orphaned sockets. */
 interface IrcHmrState {
-  currentChannel: string | null;
-  botNick: string | null;
+  currentChannel: string | null
+  botNick: string | null
 }
 
 const ircHmr: IrcHmrState = (import.meta.hot?.data?.ircHmr as IrcHmrState) ?? {
   currentChannel: null,
   botNick: null,
-};
+}
 
-let ws: WebSocket | null = null;
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let currentChannel: string | null = ircHmr.currentChannel;
-let botNick: string | null = ircHmr.botNick;
+let ws: WebSocket | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let currentChannel: string | null = ircHmr.currentChannel
+let botNick: string | null = ircHmr.botNick
 
 interface IrcTokenResponse {
-  token: string;
-  username: string;
+  token: string
+  username: string
 }
 
 /** Track stream start time for {uptime} template variable */
-let streamStartedAt: Date | null = null;
-let lastCommandTime = 0;
+let streamStartedAt: Date | null = null
+let lastCommandTime = 0
 
 /** Recently sent message texts, used to deduplicate IRC echoes */
-const recentSentTexts = new Set<string>();
+const recentSentTexts = new Set<string>()
 
 /** Resolve template variables in command responses */
-function resolveTemplateVars(template: string): string {
+function resolveTemplateVariables(template: string): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => {
     switch (key) {
-      case "uptime": {
-        if (!streamStartedAt) return "offline";
-        const ms = Date.now() - streamStartedAt.getTime();
-        const hours = Math.floor(ms / 3_600_000);
-        const mins = Math.floor((ms % 3_600_000) / 60_000);
-        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+      case 'uptime': {
+        if (!streamStartedAt) return 'offline'
+        const ms = Date.now() - streamStartedAt.getTime()
+        const hours = Math.floor(ms / 3_600_000)
+        const mins = Math.floor((ms % 3_600_000) / 60_000)
+        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
       }
-      case "game":
-        return (streamInfoCache.game as string) || "unknown";
-      case "title":
-        return (streamInfoCache.title as string) || "unknown";
-      case "viewers":
-        return useViewerCount.getState().count.toLocaleString();
-      case "followers":
-        return (streamInfoCache.followers as string) || "unknown";
+      case 'game':
+        return (streamInfoCache.game as string) || 'unknown'
+      case 'title':
+        return (streamInfoCache.title as string) || 'unknown'
+      case 'viewers':
+        return useViewerCount.getState().count.toLocaleString()
+      case 'followers':
+        return (streamInfoCache.followers as string) || 'unknown'
       default:
-        return match;
+        return match
     }
-  });
+  })
 }
 
 /** Cache for stream info from event bus (used by template resolver) */
-const streamInfoCache: Record<string, unknown> = {};
+const streamInfoCache: Record<string, unknown> = {}
 
 /** Initialise the event bus listener for stream info used by chat commands */
 export function initCommandEventListeners(): void {
   subscribeBus((event) => {
-    if (event.type === "stream_online") {
-      streamStartedAt = new Date(event.data.started_at as string);
-    } else if (event.type === "stream_offline") {
-      streamStartedAt = null;
-    } else if (event.type === "channel_update") {
-      streamInfoCache.title = event.data.title;
-      streamInfoCache.game = event.data.category_name;
-    } else if (event.type === "follower_count_update") {
-      streamInfoCache.followers = String(event.data.count);
+    if (event.type === 'stream_online') {
+      streamStartedAt = new Date(event.data.started_at as string)
+    } else if (event.type === 'stream_offline') {
+      streamStartedAt = null
+    } else if (event.type === 'channel_update') {
+      streamInfoCache.title = event.data.title
+      streamInfoCache.game = event.data.category_name
+    } else if (event.type === 'follower_count_update') {
+      streamInfoCache.followers = String(event.data.count)
     }
-  });
+  })
 
   // Fetch initial stream state from Helix once authenticated and channel is set
-  let fetched = false;
+  let fetched = false
   const fetchInitialState = () => {
-    if (fetched) return;
-    const { channel, authenticated } = useTwitchStore.getState();
-    if (!channel || !authenticated) return;
-    fetched = true;
+    if (fetched) return
+    const { channel, authenticated } = useTwitchStore.getState()
+    if (!channel || !authenticated) return
+    fetched = true
     fetchStreamInfo({ login: channel })
       .then((info) => {
         if (info) {
-          streamStartedAt = new Date(info.started_at);
-          streamInfoCache.title = info.title;
-          streamInfoCache.game = info.game_name;
+          streamStartedAt = new Date(info.started_at)
+          streamInfoCache.title = info.title
+          streamInfoCache.game = info.game_name
         }
       })
-      .catch(console.error);
-  };
+      .catch(console.error)
+  }
 
-  fetchInitialState();
-  useTwitchStore.subscribe(fetchInitialState);
+  fetchInitialState()
+  useTwitchStore.subscribe(fetchInitialState)
 }
 
 /** Check if a message matches a chat command and respond if so */
 function handleChatCommand(text: string): void {
-  const { authenticated } = useTwitchStore.getState();
-  if (!authenticated) return;
+  const { authenticated } = useTwitchStore.getState()
+  if (!authenticated) return
 
-  const now = Date.now();
-  if (now - lastCommandTime < COMMAND_COOLDOWN_MS) return;
+  const now = Date.now()
+  if (now - lastCommandTime < COMMAND_COOLDOWN_MS) return
 
-  const { commands } = useOverlayStore.getState();
-  const lowerText = text.trimStart().toLowerCase();
+  const { commands } = useOverlayStore.getState()
+  const lowerText = text.trimStart().toLowerCase()
 
   for (const cmd of commands) {
-    if (!cmd.enabled) continue;
-    if (lowerText === cmd.trigger.toLowerCase() || lowerText.startsWith(cmd.trigger.toLowerCase() + " ")) {
-      lastCommandTime = now;
-      const response = resolveTemplateVars(cmd.response);
-      sendChatMessage(response);
-      return;
+    if (!cmd.enabled) continue
+    if (
+      lowerText === cmd.trigger.toLowerCase() ||
+      lowerText.startsWith(cmd.trigger.toLowerCase() + ' ')
+    ) {
+      lastCommandTime = now
+      const response = resolveTemplateVariables(cmd.response)
+      sendChatMessage(response)
+      return
     }
   }
 }
@@ -144,118 +159,136 @@ function handleChatCommand(text: string): void {
 /** Parse the emotes tag from an IRC message into an array of emote positions.
  *  Format: `emotesv2_ID:start-end,start-end/emotesv2_ID2:start-end` */
 export function parseEmotes(tag: string): Array<{ id: string; start: number; end: number }> {
-  if (!tag) return [];
-  const emotes: Array<{ id: string; start: number; end: number }> = [];
-  for (const entry of tag.split("/")) {
-    const colonIdx = entry.indexOf(":");
-    if (colonIdx === -1) continue;
-    const id = entry.slice(0, colonIdx);
-    const positions = entry.slice(colonIdx + 1);
-    for (const pos of positions.split(",")) {
-      const dashIdx = pos.indexOf("-");
-      if (dashIdx === -1) continue;
-      const start = Number(pos.slice(0, dashIdx));
-      const end = Number(pos.slice(dashIdx + 1));
+  if (!tag) return []
+  const emotes: Array<{ id: string; start: number; end: number }> = []
+  for (const entry of tag.split('/')) {
+    const colonIndex = entry.indexOf(':')
+    if (colonIndex === -1) continue
+    const id = entry.slice(0, colonIndex)
+    const positions = entry.slice(colonIndex + 1)
+    for (const pos of positions.split(',')) {
+      const dashIndex = pos.indexOf('-')
+      if (dashIndex === -1) continue
+      const start = Number(pos.slice(0, dashIndex))
+      const end = Number(pos.slice(dashIndex + 1))
       if (!Number.isNaN(start) && !Number.isNaN(end)) {
-        emotes.push({ id, start, end });
+        emotes.push({ id, start, end })
       }
     }
   }
-  return emotes;
+  return emotes
 }
 
 /** Parse a PRIVMSG IRC line into a chat message, or null if not parseable. */
-export function parsePRIVMSG(raw: string): { username: string; colour: string; text: string; userId: string; badges: Array<{ setId: string; versionId: string }>; emotes: Array<{ id: string; start: number; end: number }> } | null {
-  const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
-  const tags = tagEnd > 0 ? raw.slice(1, tagEnd) : "";
-  const rest = tagEnd > 0 ? raw.slice(tagEnd + 1) : raw;
+export function parsePRIVMSG(raw: string): {
+  username: string
+  colour: string
+  text: string
+  userId: string
+  badges: Array<{ setId: string; versionId: string }>
+  emotes: Array<{ id: string; start: number; end: number }>
+} | null {
+  const tagEnd = raw.startsWith('@') ? raw.indexOf(' ') : -1
+  const tags = tagEnd > 0 ? raw.slice(1, tagEnd) : ''
+  const rest = tagEnd > 0 ? raw.slice(tagEnd + 1) : raw
 
-  const privmsgIdx = rest.indexOf(" PRIVMSG ");
-  if (privmsgIdx === -1) return null;
+  const privmsgIndex = rest.indexOf(' PRIVMSG ')
+  if (privmsgIndex === -1) return null
 
-  const afterPrivmsg = rest.slice(privmsgIdx + " PRIVMSG ".length);
-  const textStart = afterPrivmsg.indexOf(" :");
-  if (textStart === -1) return null;
+  const afterPrivmsg = rest.slice(privmsgIndex + ' PRIVMSG '.length)
+  const textStart = afterPrivmsg.indexOf(' :')
+  if (textStart === -1) return null
 
-  const text = afterPrivmsg.slice(textStart + 2);
+  const text = afterPrivmsg.slice(textStart + 2)
 
-  let displayName = "";
-  let colour = "";
-  let userId = "";
-  let badges: Array<{ setId: string; versionId: string }> = [];
-  let emotesTag = "";
-  for (const pair of tags.split(";")) {
-    const eq = pair.indexOf("=");
-    if (eq === -1) continue;
-    const key = pair.slice(0, eq);
-    const value = pair.slice(eq + 1);
-    if (key === "display-name") displayName = value;
-    else if (key === "color") colour = value;
-    else if (key === "user-id") userId = value;
-    else if (key === "badges" && value) {
-      badges = value.split(",").filter(Boolean).map((entry) => {
-        const [setId, versionId] = entry.split("/");
-        return { setId, versionId };
-      });
-    } else if (key === "emotes" && value) {
-      emotesTag = value;
+  let displayName = ''
+  let colour = ''
+  let userId = ''
+  let badges: Array<{ setId: string; versionId: string }> = []
+  let emotesTag = ''
+  for (const pair of tags.split(';')) {
+    const eq = pair.indexOf('=')
+    if (eq === -1) continue
+    const key = pair.slice(0, eq)
+    const value = pair.slice(eq + 1)
+    if (key === 'display-name') displayName = value
+    else if (key === 'color') colour = value
+    else if (key === 'user-id') userId = value
+    else if (key === 'badges' && value) {
+      badges = value
+        .split(',')
+        .filter(Boolean)
+        .map((entry) => {
+          const [setId, versionId] = entry.split('/')
+          return { setId, versionId }
+        })
+    } else if (key === 'emotes' && value) {
+      emotesTag = value
     }
   }
 
   if (!displayName) {
-    const match = rest.match(/^:(\w+)!/);
-    if (match) displayName = match[1];
+    const match = rest.match(/^:(\w+)!/)
+    if (match) displayName = match[1]
   }
 
-  if (!displayName) return null;
+  if (!displayName) return null
 
-  return { username: displayName, colour: colour || defaultColourForUsername(displayName), text, userId, badges, emotes: parseEmotes(emotesTag) };
+  return {
+    username: displayName,
+    colour: colour || defaultColourForUsername(displayName),
+    text,
+    userId,
+    badges,
+    emotes: parseEmotes(emotesTag),
+  }
 }
 
 /** Parse a JOIN or PART line, returning the username or null. */
-function parseJoinPart(raw: string): { username: string; type: "join" | "part" } | null {
+function parseJoinPart(raw: string): { username: string; type: 'join' | 'part' } | null {
   // Format: :username!username@username.tmi.twitch.tv JOIN #channel
-  const joinMatch = raw.match(/^:(\w+)!\w+@\w+\.tmi\.twitch\.tv JOIN /);
-  if (joinMatch) return { username: joinMatch[1], type: "join" };
+  const joinMatch = raw.match(/^:(\w+)!\w+@\w+\.tmi\.twitch\.tv JOIN /)
+  if (joinMatch) return { username: joinMatch[1], type: 'join' }
 
-  const partMatch = raw.match(/^:(\w+)!\w+@\w+\.tmi\.twitch\.tv PART /);
-  if (partMatch) return { username: partMatch[1], type: "part" };
+  const partMatch = raw.match(/^:(\w+)!\w+@\w+\.tmi\.twitch\.tv PART /)
+  if (partMatch) return { username: partMatch[1], type: 'part' }
 
-  return null;
+  return null
 }
 
 /** Extract the color tag value from an IRC tags string. */
 export function parseColourTag(raw: string): string | null {
-  const tagEnd = raw.startsWith("@") ? raw.indexOf(" ") : -1;
-  if (tagEnd <= 0) return null;
-  const tags = raw.slice(1, tagEnd);
-  for (const pair of tags.split(";")) {
-    const eq = pair.indexOf("=");
-    if (eq === -1) continue;
-    if (pair.slice(0, eq) === "color" && pair.length > eq + 1) return pair.slice(eq + 1);
+  const tagEnd = raw.startsWith('@') ? raw.indexOf(' ') : -1
+  if (tagEnd <= 0) return null
+  const tags = raw.slice(1, tagEnd)
+  for (const pair of tags.split(';')) {
+    const eq = pair.indexOf('=')
+    if (eq === -1) continue
+    if (pair.slice(0, eq) === 'color' && pair.length > eq + 1) return pair.slice(eq + 1)
   }
-  return null;
+  return null
 }
 
 function handleMessage(event: MessageEvent<string>) {
-  const lines = (event.data as string).split("\r\n").filter(Boolean);
+  const lines = (event.data as string).split('\r\n').filter(Boolean)
   for (const line of lines) {
-    if (line.startsWith("PING")) {
-      ws?.send("PONG :tmi.twitch.tv");
-      continue;
+    if (line.startsWith('PING')) {
+      ws?.send('PONG :tmi.twitch.tv')
+      continue
     }
 
     // Capture user colour from GLOBALUSERSTATE or USERSTATE
-    if (line.includes(" GLOBALUSERSTATE") || line.includes(" USERSTATE ")) {
-      const colour = parseColourTag(line);
-      if (colour) useTwitchStore.getState().setUserColour(colour);
-      continue;
+    if (line.includes(' GLOBALUSERSTATE') || line.includes(' USERSTATE ')) {
+      const colour = parseColourTag(line)
+      if (colour) useTwitchStore.getState().setUserColour(colour)
+      continue
     }
 
-    const parsed = parsePRIVMSG(line);
+    const parsed = parsePRIVMSG(line)
     if (parsed) {
-      const isOwnEcho = botNick && parsed.username.toLowerCase() === botNick && recentSentTexts.has(parsed.text);
-      const timestamp = Date.now();
+      const isOwnEcho =
+        botNick && parsed.username.toLowerCase() === botNick && recentSentTexts.has(parsed.text)
+      const timestamp = Date.now()
 
       // Own echoes: display + event bus already handled by sendChatMessage — skip.
       if (!isOwnEcho) {
@@ -267,134 +300,132 @@ function handleMessage(event: MessageEvent<string>) {
           badges: parsed.badges,
           emotes: parsed.emotes.length > 0 ? parsed.emotes : undefined,
           timestamp,
-        });
-        handleChatCommand(parsed.text);
+        })
+        handleChatCommand(parsed.text)
         publish({
-          type: "chat",
+          type: 'chat',
           timestamp,
           data: { username: parsed.username, text: parsed.text, userId: parsed.userId },
-        });
+        })
       }
 
-      continue;
+      continue
     }
 
     // Strip tags before checking JOIN/PART
-    const tagEnd = line.startsWith("@") ? line.indexOf(" ") : -1;
-    const rest = tagEnd > 0 ? line.slice(tagEnd + 1) : line;
-    const joinPart = parseJoinPart(rest);
+    const tagEnd = line.startsWith('@') ? line.indexOf(' ') : -1
+    const rest = tagEnd > 0 ? line.slice(tagEnd + 1) : line
+    const joinPart = parseJoinPart(rest)
     if (joinPart && joinPart.username.toLowerCase() !== botNick) {
       publish({
         type: joinPart.type,
         timestamp: Date.now(),
         data: { username: joinPart.username },
-      });
+      })
     }
   }
 }
 
 function scheduleReconnect() {
-  if (reconnectTimer) return;
+  if (reconnectTimer) return
   reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
-    if (currentChannel) connectChat(currentChannel);
-  }, RECONNECT_DELAY_MS);
+    reconnectTimer = null
+    if (currentChannel) connectChat(currentChannel)
+  }, RECONNECT_DELAY_MS)
 }
 
 /** Connect to a Twitch channel's chat. Uses authenticated mode if logged in. */
 export async function connectChat(channel: string): Promise<void> {
-  disconnectChat();
-  const normalised = channel.toLowerCase().replace(/^#/, "");
-  if (!normalised) return;
+  disconnectChat()
+  const normalised = channel.toLowerCase().replace(/^#/, '')
+  if (!normalised) return
 
-  currentChannel = normalised;
-  const socket = new WebSocket(IRC_URL);
-  ws = socket;
+  currentChannel = normalised
+  const socket = new WebSocket(IRC_URL)
+  ws = socket
 
-  const { authenticated } = useTwitchStore.getState();
+  const { authenticated } = useTwitchStore.getState()
 
-  socket.addEventListener("open", async () => {
+  socket.addEventListener('open', async () => {
     try {
       if (authenticated) {
-        const { token, username }: IrcTokenResponse = await invoke("auth_get_irc_token");
-        socket.send(
-          `CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership`,
-        );
-        socket.send(`PASS oauth:${token}`);
-        socket.send(`NICK ${username}`);
-        botNick = username.toLowerCase();
+        const { token, username }: IrcTokenResponse = await invoke('auth_get_irc_token')
+        socket.send(`CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership`)
+        socket.send(`PASS oauth:${token}`)
+        socket.send(`NICK ${username}`)
+        botNick = username.toLowerCase()
       } else {
-        socket.send("CAP REQ :twitch.tv/tags");
-        socket.send("NICK justinfan12345");
-        botNick = "justinfan12345";
+        socket.send('CAP REQ :twitch.tv/tags')
+        socket.send('NICK justinfan12345')
+        botNick = 'justinfan12345'
       }
-      socket.send(`JOIN #${normalised}`);
-      useTwitchStore.getState().setConnected(true);
+      socket.send(`JOIN #${normalised}`)
+      useTwitchStore.getState().setConnected(true)
     } catch (e) {
-      console.error("IRC auth failed, falling back to anonymous:", e);
-      socket.send("CAP REQ :twitch.tv/tags");
-      socket.send("NICK justinfan12345");
-        botNick = "justinfan12345";
-      socket.send(`JOIN #${normalised}`);
-      useTwitchStore.getState().setConnected(true);
+      console.error('IRC auth failed, falling back to anonymous:', e)
+      socket.send('CAP REQ :twitch.tv/tags')
+      socket.send('NICK justinfan12345')
+      botNick = 'justinfan12345'
+      socket.send(`JOIN #${normalised}`)
+      useTwitchStore.getState().setConnected(true)
     }
-  });
+  })
 
-  socket.addEventListener("message", handleMessage);
+  socket.addEventListener('message', handleMessage)
 
-  socket.addEventListener("close", () => {
-    if (ws !== socket) return; // stale socket from a previous connection
-    useTwitchStore.getState().setConnected(false);
-    if (currentChannel) scheduleReconnect();
-  });
+  socket.addEventListener('close', () => {
+    if (ws !== socket) return // stale socket from a previous connection
+    useTwitchStore.getState().setConnected(false)
+    if (currentChannel) scheduleReconnect()
+  })
 
-  socket.addEventListener("error", () => {
-    if (ws !== socket) return;
-    socket.close();
-  });
+  socket.addEventListener('error', () => {
+    if (ws !== socket) return
+    socket.close()
+  })
 }
 
 /** Send a chat message to the current channel. */
 export function sendChatMessage(text: string): void {
-  if (!ws || !currentChannel || ws.readyState !== WebSocket.OPEN) return;
-  ws.send(`PRIVMSG #${currentChannel} :${text}`);
-  recentSentTexts.add(text);
-  setTimeout(() => recentSentTexts.delete(text), 5000);
+  if (!ws || !currentChannel || ws.readyState !== WebSocket.OPEN) return
+  ws.send(`PRIVMSG #${currentChannel} :${text}`)
+  recentSentTexts.add(text)
+  setTimeout(() => recentSentTexts.delete(text), 5000)
 
-  const { username, userColour, userId } = useTwitchStore.getState();
-  const timestamp = Date.now();
+  const { username, userColour, userId } = useTwitchStore.getState()
+  const timestamp = Date.now()
   pushChatMessage({
     id: `${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
-    username: username || botNick || "me",
+    username: username || botNick || 'me',
     colour: userColour,
     text,
     timestamp,
-  });
+  })
 
   // Publish to event bus immediately for own messages (don't wait for IRC echo).
   // The echo handler skips the duplicate publish for isOwnEcho messages.
   publish({
-    type: "chat",
+    type: 'chat',
     timestamp,
-    data: { username: username || botNick || "me", text, userId },
-  });
+    data: { username: username || botNick || 'me', text, userId },
+  })
 
-  handleChatCommand(text);
+  handleChatCommand(text)
 }
 
 /** Disconnect from Twitch chat. */
 export function disconnectChat(): void {
-  currentChannel = null;
-  botNick = null;
+  currentChannel = null
+  botNick = null
   if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
   }
   if (ws) {
-    ws.close();
-    ws = null;
+    ws.close()
+    ws = null
   }
-  useTwitchStore.getState().setConnected(false);
+  useTwitchStore.getState().setConnected(false)
 }
 
 // ---------------------------------------------------------------------------
@@ -404,19 +435,25 @@ export function disconnectChat(): void {
 if (import.meta.hot?.data) {
   import.meta.hot.dispose(() => {
     // Save channel state so the new module can reconnect
-    ircHmr.currentChannel = currentChannel;
-    ircHmr.botNick = botNick;
+    ircHmr.currentChannel = currentChannel
+    ircHmr.botNick = botNick
     // Close the socket so the old handleMessage listener stops firing
-    if (ws) { ws.close(); ws = null; }
-    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-  });
+    if (ws) {
+      ws.close()
+      ws = null
+    }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+  })
 
-  import.meta.hot.data.ircHmr = ircHmr;
+  import.meta.hot.data.ircHmr = ircHmr
 
   // Reconnect if there was an active channel before HMR
   if (currentChannel && !ws) {
-    connectChat(currentChannel);
+    connectChat(currentChannel)
   }
 
-  import.meta.hot.accept();
+  import.meta.hot.accept()
 }

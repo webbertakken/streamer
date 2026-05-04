@@ -5,6 +5,7 @@ The streamer app is a Tauri v2 desktop overlay (React + Rust). Version `0.1.0` i
 ## Goals / Non-goals
 
 **Goals:**
+
 - Fully automatic versioning driven by conventional commit messages — no manual steps
 - Cross-platform builds for Windows x64, Linux x64, Linux arm64, macOS x64, macOS arm64
 - Artefacts published to GitHub Releases with `latest.json` for the Tauri updater
@@ -12,6 +13,7 @@ The streamer app is a Tauri v2 desktop overlay (React + Rust). Version `0.1.0` i
 - All three version files kept in sync
 
 **Non-goals:**
+
 - Code signing (Windows/macOS) — will be a separate change when certificates are available
 - Auto-update integration in the app (updater plugin) — separate concern
 - Publishing to app stores (Microsoft Store, Mac App Store)
@@ -53,6 +55,7 @@ The streamer app is a Tauri v2 desktop overlay (React + Rust). Version `0.1.0` i
 **Why**: Actually, Release Please creates the release and tag in one step. `tauri-action` then attaches build artefacts to the existing release. The release is published by Release Please and the build workflow adds assets afterwards. The `releaseId` output from Release Please is not needed — `tauri-action` finds the release by tag name.
 
 **Flow**:
+
 1. Conventional commits land on `main` via squash-merge
 2. Release Please opens/updates a Release PR with changelog + version bumps
 3. Merging the Release PR: Release Please creates a git tag (`v0.2.0`) and a GitHub Release

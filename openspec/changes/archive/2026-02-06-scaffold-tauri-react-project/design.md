@@ -5,11 +5,13 @@ Greenfield project. No existing code, dependencies, or constraints beyond the de
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Working Tauri v2 + React + TypeScript scaffold
 - Transparent overlay window configured from the start
 - Tailwind, Zustand, and widget registry ready for development
 
 **Non-goals:**
+
 - No actual widgets yet
 - No Twitch connectivity
 - No YAML config system (just the scaffold)

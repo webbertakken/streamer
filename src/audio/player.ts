@@ -3,9 +3,9 @@
  * or HTMLAudioElement for custom sound files.
  */
 
-import { BUILTIN_SOUNDS, playSynth, type BuiltinSound } from "./synth";
+import { BUILTIN_SOUNDS, playSynth, type BuiltinSound } from './synth'
 
-const builtinSet = new Set<string>(BUILTIN_SOUNDS);
+const builtinSet = new Set<string>(BUILTIN_SOUNDS)
 
 /**
  * Play a sound by key. If the key matches a built-in sound it is synthesised
@@ -16,12 +16,12 @@ const builtinSet = new Set<string>(BUILTIN_SOUNDS);
  */
 export function playSound(sound: string, volume: number): void {
   if (builtinSet.has(sound)) {
-    playSynth(sound as BuiltinSound, volume);
-    return;
+    playSynth(sound as BuiltinSound, volume)
+    return
   }
 
   // Custom file — use HTMLAudioElement
-  const audio = new Audio(sound);
-  audio.volume = Math.max(0, Math.min(1, volume / 100));
-  audio.play().catch(console.error);
+  const audio = new Audio(sound)
+  audio.volume = Math.max(0, Math.min(1, volume / 100))
+  audio.play().catch(console.error)
 }

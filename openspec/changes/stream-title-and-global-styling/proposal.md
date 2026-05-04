@@ -12,9 +12,11 @@ The stream title widget is currently limited — it hides outside edit mode and 
 ## Capabilities
 
 ### New capabilities
+
 - `global-styling`: global appearance settings (rounded corners) applied across all widgets and visible UI elements
 
 ### Modified capabilities
+
 - `stream-title`: add display-mode toggle UI and per-widget font/size/colour/background styling options
 - `chat-messages`: change message expiry from 60s to 180s
 

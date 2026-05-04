@@ -1,55 +1,54 @@
-import { useEffect, useState, useCallback } from "react";
-import { Widget } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { subscribe, type ChannelEvent } from "../../events/bus";
-import { useOverlayStore } from "../../stores/overlay";
+import { useEffect, useState, useCallback } from 'react'
+import { subscribe, type ChannelEvent } from '../../events/bus'
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget } from '../Widget'
 
 export interface RaidAlert {
-  id: string;
-  fromUsername: string;
-  viewerCount: number;
+  id: string
+  fromUsername: string
+  viewerCount: number
 }
 
-const alertQueue: RaidAlert[] = [];
-const listeners = new Set<() => void>();
+const alertQueue: RaidAlert[] = []
+const listeners = new Set<() => void>()
 
 /** Queue a raid alert to be displayed */
 export function pushRaidAlert(fromUsername: string, viewerCount: number) {
-  alertQueue.push({ id: crypto.randomUUID(), fromUsername, viewerCount });
-  listeners.forEach((fn) => fn());
+  alertQueue.push({ id: crypto.randomUUID(), fromUsername, viewerCount })
+  listeners.forEach((fn) => fn())
 }
 
 function RaidAlertContent() {
-  const borderRadius = useOverlayStore((s) => s.borderRadius);
-  const [current, setCurrent] = useState<RaidAlert | null>(null);
+  const borderRadius = useOverlayStore((s) => s.borderRadius)
+  const [current, setCurrent] = useState<RaidAlert | null>(null)
 
   const showNext = useCallback(() => {
-    const next = alertQueue.shift();
+    const next = alertQueue.shift()
     if (next) {
-      setCurrent(next);
-      setTimeout(() => setCurrent(null), 4000);
+      setCurrent(next)
+      setTimeout(() => setCurrent(null), 4000)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const check = () => {
-      if (!current && alertQueue.length > 0) showNext();
-    };
-    listeners.add(check);
-    return () => { listeners.delete(check); };
-  }, [current, showNext]);
+      if (!current && alertQueue.length > 0) showNext()
+    }
+    listeners.add(check)
+    return () => {
+      listeners.delete(check)
+    }
+  }, [current, showNext])
 
   useEffect(() => {
     return subscribe((event: ChannelEvent) => {
-      if (event.type !== "raid") return;
-      pushRaidAlert(
-        event.data.from_broadcaster_user_name as string,
-        event.data.viewers as number,
-      );
-    });
-  }, []);
+      if (event.type !== 'raid') return
+      pushRaidAlert(event.data.from_broadcaster_user_name as string, event.data.viewers as number)
+    })
+  }, [])
 
-  if (!current) return <div className="h-full" />;
+  if (!current) return <div className="h-full" />
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -63,7 +62,7 @@ function RaidAlertContent() {
         <div className="text-white/70 text-sm mt-0.5">{current.viewerCount} viewers</div>
       </div>
     </div>
-  );
+  )
 }
 
 export function RaidAlertWidget({ instanceId }: WidgetInstanceProps) {
@@ -71,5 +70,5 @@ export function RaidAlertWidget({ instanceId }: WidgetInstanceProps) {
     <Widget instanceId={instanceId} name="Raid alerts">
       <RaidAlertContent />
     </Widget>
-  );
+  )
 }

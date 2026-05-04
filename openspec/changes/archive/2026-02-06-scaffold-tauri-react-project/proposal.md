@@ -13,9 +13,11 @@ Streamer has no codebase yet — we need a project scaffold that sets up the Tau
 ## Capabilities
 
 ### New Capabilities
+
 - `project-scaffold`: Base Tauri v2 application with React frontend, ready for widget development
 
 ### Modified Capabilities
+
 <!-- None — this is a greenfield project -->
 
 ## Impact

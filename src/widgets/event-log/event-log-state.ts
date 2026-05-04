@@ -1,20 +1,20 @@
-import { subscribe, type ChannelEvent } from "../../events/bus";
+import { subscribe, type ChannelEvent } from '../../events/bus'
 
-const MAX_EVENTS = 500;
+const MAX_EVENTS = 500
 
 export interface LogEntry {
-  id: string;
-  event: ChannelEvent;
+  id: string
+  event: ChannelEvent
 }
 
-export const entries: LogEntry[] = [];
-export const listeners = new Set<() => void>();
+export const entries: LogEntry[] = []
+export const listeners = new Set<() => void>()
 
 export function notify() {
-  listeners.forEach((fn) => fn());
+  listeners.forEach((fn) => fn())
 }
 
-let unsubBus: (() => void) | null = null;
+let unsubBus: (() => void) | null = null
 
 export function ensureSubscribed() {
   if (!unsubBus) {
@@ -22,9 +22,9 @@ export function ensureSubscribed() {
       entries.push({
         id: `${event.timestamp}-${Math.random().toString(36).slice(2, 6)}`,
         event,
-      });
-      if (entries.length > MAX_EVENTS) entries.splice(0, entries.length - MAX_EVENTS);
-      notify();
-    });
+      })
+      if (entries.length > MAX_EVENTS) entries.splice(0, entries.length - MAX_EVENTS)
+      notify()
+    })
   }
 }

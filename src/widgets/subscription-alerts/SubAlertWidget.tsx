@@ -1,78 +1,86 @@
-import { useEffect, useState, useCallback } from "react";
-import { Widget } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { subscribe, type ChannelEvent } from "../../events/bus";
-import { useOverlayStore } from "../../stores/overlay";
+import { useEffect, useState, useCallback } from 'react'
+import { subscribe, type ChannelEvent } from '../../events/bus'
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget } from '../Widget'
 
 export interface SubAlert {
-  id: string;
-  username: string;
-  tier: string;
-  isGift: boolean;
-  gifterUsername?: string;
-  message?: string;
+  id: string
+  username: string
+  tier: string
+  isGift: boolean
+  gifterUsername?: string
+  message?: string
 }
 
-const alertQueue: SubAlert[] = [];
-const listeners = new Set<() => void>();
+const alertQueue: SubAlert[] = []
+const listeners = new Set<() => void>()
 
 /** Queue a subscription alert to be displayed */
-export function pushSubAlert(alert: Omit<SubAlert, "id">) {
-  alertQueue.push({ ...alert, id: crypto.randomUUID() });
-  listeners.forEach((fn) => fn());
+export function pushSubAlert(alert: Omit<SubAlert, 'id'>) {
+  alertQueue.push({ ...alert, id: crypto.randomUUID() })
+  listeners.forEach((fn) => fn())
 }
 
 /** Map Twitch tier codes to display labels */
 function tierLabel(tier: string): string {
   switch (tier) {
-    case "1000": return "Tier 1";
-    case "2000": return "Tier 2";
-    case "3000": return "Tier 3";
-    default: return tier;
+    case '1000':
+      return 'Tier 1'
+    case '2000':
+      return 'Tier 2'
+    case '3000':
+      return 'Tier 3'
+    default:
+      return tier
   }
 }
 
 function SubAlertContent() {
-  const borderRadius = useOverlayStore((s) => s.borderRadius);
-  const [current, setCurrent] = useState<SubAlert | null>(null);
+  const borderRadius = useOverlayStore((s) => s.borderRadius)
+  const [current, setCurrent] = useState<SubAlert | null>(null)
 
   const showNext = useCallback(() => {
-    const next = alertQueue.shift();
+    const next = alertQueue.shift()
     if (next) {
-      setCurrent(next);
-      setTimeout(() => setCurrent(null), 4000);
+      setCurrent(next)
+      setTimeout(() => setCurrent(null), 4000)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const check = () => {
-      if (!current && alertQueue.length > 0) showNext();
-    };
-    listeners.add(check);
-    return () => { listeners.delete(check); };
-  }, [current, showNext]);
+      if (!current && alertQueue.length > 0) showNext()
+    }
+    listeners.add(check)
+    return () => {
+      listeners.delete(check)
+    }
+  }, [current, showNext])
 
   useEffect(() => {
     return subscribe((event: ChannelEvent) => {
-      if (event.type === "subscribe") {
+      if (event.type === 'subscribe') {
         pushSubAlert({
           username: event.data.user_name as string,
           tier: event.data.tier as string,
           isGift: event.data.is_gift as boolean,
-          message: (event.data.message as Record<string, unknown> | undefined)?.text as string | undefined,
-        });
-      } else if (event.type === "gift_sub") {
+          message: (event.data.message as Record<string, unknown> | undefined)?.text as
+            | string
+            | undefined,
+        })
+      } else if (event.type === 'gift_sub') {
         pushSubAlert({
           username: event.data.user_name as string,
           tier: event.data.tier as string,
           isGift: true,
           gifterUsername: event.data.gifter_user_name as string,
-        });
+        })
       }
-    });
-  }, []);
+    })
+  }, [])
 
-  if (!current) return <div className="h-full" />;
+  if (!current) return <div className="h-full" />
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -82,7 +90,7 @@ function SubAlertContent() {
         style={{ borderRadius }}
       >
         <div className="text-white/80 text-sm font-medium">
-          {current.isGift ? "Gift sub!" : "New subscriber!"}
+          {current.isGift ? 'Gift sub!' : 'New subscriber!'}
         </div>
         <div className="text-white text-xl font-bold mt-1">{current.username}</div>
         <div className="text-white/70 text-sm mt-0.5">
@@ -94,7 +102,7 @@ function SubAlertContent() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export function SubAlertWidget({ instanceId }: WidgetInstanceProps) {
@@ -102,5 +110,5 @@ export function SubAlertWidget({ instanceId }: WidgetInstanceProps) {
     <Widget instanceId={instanceId} name="Subscription alerts">
       <SubAlertContent />
     </Widget>
-  );
+  )
 }
