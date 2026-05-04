@@ -7,6 +7,7 @@ The settings panel (`SettingsWidget.tsx`) is not a registered widget in the regi
 ## Goals / Non-goals
 
 **Goals:**
+
 - Remove the dead `instance.opacity` field from `WidgetInstance` and all references (store, seeding, persistence, default JSON)
 - Remove `panelBgOpacity` as a separate global setting; the settings panel should use the same global background opacity as all other widgets (`widgetBgOpacity`)
 - Preserve the user's current `panelBgOpacity` value during migration by carrying it forward as a `bgOpacity` override on a dedicated "settings panel" concept
@@ -14,6 +15,7 @@ The settings panel (`SettingsWidget.tsx`) is not a registered widget in the regi
 - Unify to two opacity controls: one global (`widgetBgOpacity`) and one optional per-widget override (`instance.bgOpacity`)
 
 **Non-goals:**
+
 - Adding the settings panel to the widget registry (it remains a standalone component)
 - Changing `panelBgColour` — this stays as a separate setting because the panel colour serves a distinct purpose (readable settings UI vs transparent overlay widgets)
 - Adding a per-panel bgOpacity override UI — the global `widgetBgOpacity` slider in the appearance tab already covers this
@@ -33,6 +35,7 @@ Delete the `opacity` field from the `WidgetInstance` interface in `src/stores/ov
 ### 2. Remove `panelBgOpacity` from `OverlayStore`
 
 Delete from the `OverlayStore` interface and implementation:
+
 - `panelBgOpacity: number`
 - `setPanelBgOpacity: (opacity: number) => void`
 
@@ -65,6 +68,7 @@ The `AppearanceTab` component also references `panelBgOpacity` and `setPanelBgOp
 ### 4. Remove the "Panel background opacity" slider from `AppearanceTab`
 
 In the "Panel background" section of `AppearanceTab`, remove:
+
 - The `panelBgOpacity` store selector
 - The `setPanelBgOpacity` store selector
 - The entire opacity slider `<div>` block (label + range input + percentage display)
@@ -87,21 +91,23 @@ Bump `_v` from `1` to `2` in `gatherState()`. Add a v2 migration block in `hydra
 // Migrate v2: remove dead instance.opacity; carry panelBgOpacity forward as widgetBgOpacity if set
 if ((data._v ?? 0) < 2) {
   for (const inst of instances) {
-    delete (inst as Record<string, unknown>).opacity;
+    delete (inst as Record<string, unknown>).opacity
   }
   // Carry forward panelBgOpacity as widgetBgOpacity so users keep their panel appearance
   if (data.overlay.panelBgOpacity !== undefined) {
     // Only override if widgetBgOpacity wasn't explicitly set or differs from the default
-    overlayPatch.widgetBgOpacity = data.overlay.panelBgOpacity;
+    overlayPatch.widgetBgOpacity = data.overlay.panelBgOpacity
   }
 }
 ```
 
 **Migration behaviour:**
+
 - Strip `opacity` from every persisted instance object (it was never used anyway, so no visual change)
 - Carry the user's `panelBgOpacity` value forward as `widgetBgOpacity` so the settings panel retains its current appearance after the upgrade
 
 **Rationale:** The user chose their `panelBgOpacity` value for a reason — likely to make the settings panel readable. Since the panel now reads `widgetBgOpacity`, we should migrate the value across. This does mean other widgets' background opacity will also change to match the old panel value, but this is acceptable because:
+
 1. Most users likely haven't customised `widgetBgOpacity` separately (the default is 0, meaning fully transparent)
 2. If they have, the panel opacity was probably set to match anyway
 3. Users can easily readjust via the single "BG opacity" slider
@@ -129,15 +135,17 @@ Remove the `opacity` field from every instance object in `src/assets/default-lay
 ### 11. Clean up hydration
 
 In `hydrate()`, remove the line that applies `panelBgOpacity` to the store:
+
 ```typescript
 // Remove this line:
 ...(data.overlay.panelBgOpacity !== undefined && { panelBgOpacity: data.overlay.panelBgOpacity }),
 ```
 
 Also remove the migration block that sets default `opacity` on instances missing it:
+
 ```typescript
 // Remove these lines:
-if (inst.opacity === undefined) inst.opacity = 100;
+if (inst.opacity === undefined) inst.opacity = 100
 ```
 
 And in the old-format migration path, remove `opacity: 100` from the fallback object.

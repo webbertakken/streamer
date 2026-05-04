@@ -7,6 +7,7 @@ To enable chat sending, follower data, EventSub events, and file logging we need
 ## Goals / Non-goals
 
 **Goals:**
+
 - Streamer can log in via Twitch OAuth from the settings panel (one click)
 - Authenticated IRC: read chat, send messages, receive JOIN/PART membership events
 - Helix API polling for follower count
@@ -15,6 +16,7 @@ To enable chat sending, follower data, EventSub events, and file logging we need
 - Secure token storage via OS credential manager
 
 **Non-goals:**
+
 - Bot account support (only the streamer's own account)
 - Server-side components or webhook transport
 - Chat moderation actions (ban, timeout, slow mode)
@@ -41,6 +43,7 @@ Stores access token, refresh token, and expiry in the OS keychain (Windows Crede
 ### 3. Token exchange and refresh in Rust
 
 All token operations happen in Rust:
+
 - `auth_start` → returns the authorisation URL (with PKCE challenge)
 - `auth_callback` → exchanges code for tokens, stores in keyring
 - `auth_status` → returns `{ authenticated: bool, username: string | null }`
@@ -52,6 +55,7 @@ The frontend never sees raw tokens. For IRC, a dedicated command returns just th
 ### 4. IRC upgrade: authenticated with membership capability
 
 Upgrade the existing `irc.ts` connection:
+
 - If authenticated: `PASS oauth:<token>` + `NICK <username>` (from auth status)
 - If not authenticated: fall back to `justinfan` (read-only, no membership)
 - Request capabilities: `twitch.tv/tags twitch.tv/commands twitch.tv/membership`
@@ -61,6 +65,7 @@ Upgrade the existing `irc.ts` connection:
 ### 5. EventSub WebSocket on the frontend
 
 Single WebSocket connection to `wss://eventsub.wss.twitch.tv/ws`:
+
 - On welcome message, extract `session_id`
 - Subscribe to events via Helix REST (proxied through Rust for auth):
   - `channel.follow` (requires `moderator:read:followers`)
@@ -78,6 +83,7 @@ Single WebSocket connection to `wss://eventsub.wss.twitch.tv/ws`:
 ### 6. Centralised event bus
 
 A TypeScript module (`src/events/bus.ts`) that all event sources publish to:
+
 - IRC handler pushes: `chat`, `join`, `part`
 - EventSub handler pushes: `follow`, `unfollow`, `raid`, `subscribe`, `gift_sub`, `cheer`, `ban`, `unban`, `stream_online`, `stream_offline`, `channel_update`
 - Helix poller pushes: `follower_count_update`
@@ -85,6 +91,7 @@ A TypeScript module (`src/events/bus.ts`) that all event sources publish to:
 Each event has a common shape: `{ type, timestamp, data }`.
 
 Consumers subscribe to the bus:
+
 - **Event log widget**: displays all events in a scrollable feed
 - **Follow events widget**: filters for follow/unfollow
 - **Chat presence widget**: filters for join/part
@@ -93,6 +100,7 @@ Consumers subscribe to the bus:
 ### 7. Event log file writing via Rust
 
 A Tauri command `append_event_log(event: string)` appends a JSON line to a log file:
+
 - Default path: `~/.config/streamer/logs/{channel}-{date}.jsonl`
 - One file per channel per day, rotated automatically
 - The frontend calls this for every event from the bus

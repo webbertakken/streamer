@@ -5,6 +5,7 @@ The streamer overlay app is a Tauri desktop application with a React frontend. I
 Currently, the app has no channel point redemption handling and does not parse the `user-id` IRC tag from PRIVMSG messages.
 
 **Relevant widget patterns:**
+
 - **EventFeedWidget**: scrollable list layout with `space-y-1.5`, `lineBg` class for text background, auto-scroll to bottom, empty state in edit mode only.
 - **ChatWidget cursor polling** (ChatInputContainer): in live mode (cursor events ignored via `set_ignore_cursor`), polls OS cursor position every `POLL_INTERVAL_MS=200`ms and reveals interactive elements after `LONG_HOVER_MS=500`ms of hovering over the widget bounding rect. Uses `hoverStartRef` timestamp pattern.
 
@@ -69,6 +70,7 @@ Currently, the app has no channel point redemption handling and does not parse t
 ### 5. Configurable list limits
 
 **Decision**: Three configurable values in widget settings:
+
 - Max active items visible (default: 7) — active suggestions shown in ranked order
 - Max done items visible (default: 3) — checked/strikethrough items shown below active list
 - Auto-hide duration for done items (default: 30s) — done items disappear after this duration
@@ -110,19 +112,25 @@ Currently, the app has no channel point redemption handling and does not parse t
 ## Risks / Trade-offs
 
 **[Breaking auth scope change]** Adding `channel:read:redemptions` requires existing users to re-authenticate.
-  - Mitigation: The app already handles expired/invalid tokens gracefully. Users will be prompted to re-authenticate on next launch.
+
+- Mitigation: The app already handles expired/invalid tokens gracefully. Users will be prompted to re-authenticate on next launch.
 
 **[Helix reward listing scope]** `GET /channel_points/custom_rewards` may require `channel:manage:channel_points_custom_rewards` rather than `channel:read:redemptions`.
-  - Mitigation: Verify during implementation. If read scope is insufficient, fall back to manual reward ID input or add the manage scope.
+
+- Mitigation: Verify during implementation. If read scope is insufficient, fall back to manual reward ID input or add the manage scope.
 
 **[No Twitch API backfill]** Redemptions that arrive while the app is offline are lost. JSON persistence is the only recovery mechanism.
-  - Trade-off: Accepted. The debounced auto-save (500ms) minimises the data loss window. In practice, the app runs continuously during streams. Between streams, missed redemptions are unlikely since channel point rewards are typically disabled off-stream.
+
+- Trade-off: Accepted. The debounced auto-save (500ms) minimises the data loss window. In practice, the app runs continuously during streams. Between streams, missed redemptions are unlikely since channel point rewards are typically disabled off-stream.
 
 **[Hex ID exhaustion]** 256 IDs could theoretically be exhausted in a very long stream.
-  - Mitigation: Recycle IDs from done suggestions. In practice, 256 is far more than any single session would need.
+
+- Mitigation: Recycle IDs from done suggestions. In practice, 256 is far more than any single session would need.
 
 **[Vote command conflicts]** The `!vote` trigger could conflict with other bots.
-  - Mitigation: Vote trigger is configurable in widget settings.
+
+- Mitigation: Vote trigger is configurable in widget settings.
 
 **[Hover detection in live mode]** OS cursor polling at 200ms intervals may feel slightly delayed.
-  - Mitigation: This is the same pattern already used and accepted for the chat input. 500ms hover threshold prevents accidental reveals.
+
+- Mitigation: This is the same pattern already used and accepted for the chat input. 500ms hover threshold prevents accidental reveals.

@@ -2,104 +2,89 @@
 
 ## [0.9.0](https://github.com/webbertakken/streamer/compare/v0.8.0...v0.9.0) (2026-02-20)
 
-
 ### Features
 
-* add suggestion box widget ([#29](https://github.com/webbertakken/streamer/issues/29)) ([5febe0b](https://github.com/webbertakken/streamer/commit/5febe0b9b84eb104b98f6831b6b12e229e20d4a2))
+- add suggestion box widget ([#29](https://github.com/webbertakken/streamer/issues/29)) ([5febe0b](https://github.com/webbertakken/streamer/commit/5febe0b9b84eb104b98f6831b6b12e229e20d4a2))
 
 ## [0.8.0](https://github.com/webbertakken/streamer/compare/v0.7.0...v0.8.0) (2026-02-14)
 
-
 ### Features
 
-* add configurable text background opacity ([#25](https://github.com/webbertakken/streamer/issues/25)) ([76425f3](https://github.com/webbertakken/streamer/commit/76425f3f8e5ef90f35f96868ec70aa16cd6b317c))
-* render native Twitch emotes in chat messages ([#24](https://github.com/webbertakken/streamer/issues/24)) ([f226216](https://github.com/webbertakken/streamer/commit/f226216c0b672b9b06aa5a509ab52dc5db1f0239))
-
+- add configurable text background opacity ([#25](https://github.com/webbertakken/streamer/issues/25)) ([76425f3](https://github.com/webbertakken/streamer/commit/76425f3f8e5ef90f35f96868ec70aa16cd6b317c))
+- render native Twitch emotes in chat messages ([#24](https://github.com/webbertakken/streamer/issues/24)) ([f226216](https://github.com/webbertakken/streamer/commit/f226216c0b672b9b06aa5a509ab52dc5db1f0239))
 
 ### Bug fixes
 
-* fall back to deterministic colour when chat username colour is empty ([#26](https://github.com/webbertakken/streamer/issues/26)) ([7bc7cdd](https://github.com/webbertakken/streamer/commit/7bc7cdd648853db929db48f0ff2ddd769a7fefda))
-* show live preview while dragging text BG opacity slider ([#28](https://github.com/webbertakken/streamer/issues/28)) ([0b4a653](https://github.com/webbertakken/streamer/commit/0b4a6539c1bb3237f479934e0a815ea68afa1d4f))
+- fall back to deterministic colour when chat username colour is empty ([#26](https://github.com/webbertakken/streamer/issues/26)) ([7bc7cdd](https://github.com/webbertakken/streamer/commit/7bc7cdd648853db929db48f0ff2ddd769a7fefda))
+- show live preview while dragging text BG opacity slider ([#28](https://github.com/webbertakken/streamer/issues/28)) ([0b4a653](https://github.com/webbertakken/streamer/commit/0b4a6539c1bb3237f479934e0a815ea68afa1d4f))
 
 ## [0.7.0](https://github.com/webbertakken/streamer/compare/v0.6.1...v0.7.0) (2026-02-13)
 
-
 ### Features
 
-* better defaults ([#22](https://github.com/webbertakken/streamer/issues/22)) ([1c441bb](https://github.com/webbertakken/streamer/commit/1c441bb63a83592a6ab8036e62002df6b87f3cca))
+- better defaults ([#22](https://github.com/webbertakken/streamer/issues/22)) ([1c441bb](https://github.com/webbertakken/streamer/commit/1c441bb63a83592a6ab8036e62002df6b87f3cca))
 
 ## [0.6.1](https://github.com/webbertakken/streamer/compare/v0.6.0...v0.6.1) (2026-02-13)
 
-
 ### Maintenance
 
-* simplify opacity settings and remove liveBg toggle ([#20](https://github.com/webbertakken/streamer/issues/20)) ([e9ecea4](https://github.com/webbertakken/streamer/commit/e9ecea4d328bb2ce51e88890073490cb6c36d2e9))
+- simplify opacity settings and remove liveBg toggle ([#20](https://github.com/webbertakken/streamer/issues/20)) ([e9ecea4](https://github.com/webbertakken/streamer/commit/e9ecea4d328bb2ce51e88890073490cb6c36d2e9))
 
 ## [0.6.0](https://github.com/webbertakken/streamer/compare/v0.5.0...v0.6.0) (2026-02-13)
 
-
 ### Features
 
-* stream title, global styling, chat badges, and content alignment ([#18](https://github.com/webbertakken/streamer/issues/18)) ([6e197d9](https://github.com/webbertakken/streamer/commit/6e197d9f9f63d60742ff86111da654369eacd0ea))
+- stream title, global styling, chat badges, and content alignment ([#18](https://github.com/webbertakken/streamer/issues/18)) ([6e197d9](https://github.com/webbertakken/streamer/commit/6e197d9f9f63d60742ff86111da654369eacd0ea))
 
 ## [0.5.0](https://github.com/webbertakken/streamer/compare/v0.4.0...v0.5.0) (2026-02-12)
 
-
 ### Features
 
-* auto-expire chat messages after 60s and fix follower alerts ([#16](https://github.com/webbertakken/streamer/issues/16)) ([f315805](https://github.com/webbertakken/streamer/commit/f315805ed6643242c73b8f96fb5a938ca9d750ee))
+- auto-expire chat messages after 60s and fix follower alerts ([#16](https://github.com/webbertakken/streamer/issues/16)) ([f315805](https://github.com/webbertakken/streamer/commit/f315805ed6643242c73b8f96fb5a938ca9d750ee))
 
 ## [0.4.0](https://github.com/webbertakken/streamer/compare/v0.3.1...v0.4.0) (2026-02-11)
 
-
 ### Features
 
-* Twitch feature bundle — widgets, alerts, sound, presets, multi-monitor ([#15](https://github.com/webbertakken/streamer/issues/15)) ([8e9558d](https://github.com/webbertakken/streamer/commit/8e9558d5f0549a48507634b06264e01f8b98c5e3))
-
+- Twitch feature bundle — widgets, alerts, sound, presets, multi-monitor ([#15](https://github.com/webbertakken/streamer/issues/15)) ([8e9558d](https://github.com/webbertakken/streamer/commit/8e9558d5f0549a48507634b06264e01f8b98c5e3))
 
 ### Bug fixes
 
-* snap widget dragging, resizing, and defaults to 8px grid ([#13](https://github.com/webbertakken/streamer/issues/13)) ([46737a1](https://github.com/webbertakken/streamer/commit/46737a114d2bf94f90516a47307a0c7c3f8e1f93))
+- snap widget dragging, resizing, and defaults to 8px grid ([#13](https://github.com/webbertakken/streamer/issues/13)) ([46737a1](https://github.com/webbertakken/streamer/commit/46737a114d2bf94f90516a47307a0c7c3f8e1f93))
 
 ## [0.3.1](https://github.com/webbertakken/streamer/compare/v0.3.0...v0.3.1) (2026-02-08)
 
-
 ### Bug fixes
 
-* snap widget dragging, resizing, and defaults to 8px grid ([#11](https://github.com/webbertakken/streamer/issues/11)) ([11955d1](https://github.com/webbertakken/streamer/commit/11955d1df9ad6b18ede4fc914112f15e6a5608ce))
+- snap widget dragging, resizing, and defaults to 8px grid ([#11](https://github.com/webbertakken/streamer/issues/11)) ([11955d1](https://github.com/webbertakken/streamer/commit/11955d1df9ad6b18ede4fc914112f15e6a5608ce))
 
 ## [0.3.0](https://github.com/webbertakken/streamer/compare/v0.2.2...v0.3.0) (2026-02-08)
 
-
 ### Features
 
-* overlay UX improvements and chat enhancements ([#7](https://github.com/webbertakken/streamer/issues/7)) ([7de4815](https://github.com/webbertakken/streamer/commit/7de4815cf6ea59692552241167df4e708fee9f9b))
-* viewer count polling and changelog improvements ([#10](https://github.com/webbertakken/streamer/issues/10)) ([3110532](https://github.com/webbertakken/streamer/commit/311053283d126d4f1ad9fac06414c455944f391c))
-
+- overlay UX improvements and chat enhancements ([#7](https://github.com/webbertakken/streamer/issues/7)) ([7de4815](https://github.com/webbertakken/streamer/commit/7de4815cf6ea59692552241167df4e708fee9f9b))
+- viewer count polling and changelog improvements ([#10](https://github.com/webbertakken/streamer/issues/10)) ([3110532](https://github.com/webbertakken/streamer/commit/311053283d126d4f1ad9fac06414c455944f391c))
 
 ### Maintenance
 
-* add checks workflow for frontend and Rust ([#9](https://github.com/webbertakken/streamer/issues/9)) ([a2b6690](https://github.com/webbertakken/streamer/commit/a2b6690f8b4d2ea11fe80544855a27d5ba76adf2))
+- add checks workflow for frontend and Rust ([#9](https://github.com/webbertakken/streamer/issues/9)) ([a2b6690](https://github.com/webbertakken/streamer/commit/a2b6690f8b4d2ea11fe80544855a27d5ba76adf2))
 
 ## [0.2.2](https://github.com/webbertakken/streamer/compare/v0.2.1...v0.2.2) (2026-02-08)
 
-
 ### Bug Fixes
 
-* **ci:** use PAT for release please to trigger build workflow ([#5](https://github.com/webbertakken/streamer/issues/5)) ([c05633c](https://github.com/webbertakken/streamer/commit/c05633c95ced01b90564f581e1a38d415be59912))
+- **ci:** use PAT for release please to trigger build workflow ([#5](https://github.com/webbertakken/streamer/issues/5)) ([c05633c](https://github.com/webbertakken/streamer/commit/c05633c95ced01b90564f581e1a38d415be59912))
 
 ## [0.2.1](https://github.com/webbertakken/streamer/compare/v0.2.0...v0.2.1) (2026-02-07)
 
-
 ### Bug Fixes
 
-* **ci:** use clean v* tags without component prefix ([6911e6d](https://github.com/webbertakken/streamer/commit/6911e6deb65fca4f7e39b5a8cfa72732434372f6))
-* **ci:** use corepack for yarn, add PR builds, clean tag format ([#4](https://github.com/webbertakken/streamer/issues/4)) ([14d36ff](https://github.com/webbertakken/streamer/commit/14d36ff39d4090f92bf3ded3b2fca6cb3e5e6d16))
+- **ci:** use clean v\* tags without component prefix ([6911e6d](https://github.com/webbertakken/streamer/commit/6911e6deb65fca4f7e39b5a8cfa72732434372f6))
+- **ci:** use corepack for yarn, add PR builds, clean tag format ([#4](https://github.com/webbertakken/streamer/issues/4)) ([14d36ff](https://github.com/webbertakken/streamer/commit/14d36ff39d4090f92bf3ded3b2fca6cb3e5e6d16))
 
 ## [0.2.0](https://github.com/webbertakken/streamer/compare/streamer-v0.1.0...streamer-v0.2.0) (2026-02-07)
 
-
 ### Features
 
-* first iteration overlay ([63f9f5c](https://github.com/webbertakken/streamer/commit/63f9f5cb7127eb0d6ac49f8600586fd4148fac74))
-* twitch integration, event system and CI/CD pipeline ([#1](https://github.com/webbertakken/streamer/issues/1)) ([619361f](https://github.com/webbertakken/streamer/commit/619361f430402cda487b3b09e55a1eb3870127a2))
+- first iteration overlay ([63f9f5c](https://github.com/webbertakken/streamer/commit/63f9f5cb7127eb0d6ac49f8600586fd4148fac74))
+- twitch integration, event system and CI/CD pipeline ([#1](https://github.com/webbertakken/streamer/issues/1)) ([619361f](https://github.com/webbertakken/streamer/commit/619361f430402cda487b3b09e55a1eb3870127a2))

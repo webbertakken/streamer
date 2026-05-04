@@ -1,39 +1,49 @@
-import { useEffect, useReducer } from "react";
-import { Widget, useContentAlign, contentAlignClass } from "../Widget";
-import type { WidgetInstanceProps } from "../registry";
-import { useOverlayStore } from "../../stores/overlay";
-import { follows, listeners, ensureSubscribed } from "./follow-events-state";
+import { useEffect, useReducer } from 'react'
+import { useOverlayStore } from '../../stores/overlay'
+import type { WidgetInstanceProps } from '../registry'
+import { Widget, useContentAlign, contentAlignClass } from '../Widget'
+import { follows, listeners, ensureSubscribed } from './follow-events-state'
 
 function useFollows() {
-  const [, rerender] = useReducer((x: number) => x + 1, 0);
+  const [, rerender] = useReducer((x: number) => x + 1, 0)
   useEffect(() => {
-    ensureSubscribed();
-    listeners.add(rerender);
-    return () => { listeners.delete(rerender); };
-  }, [rerender]);
-  return follows;
+    ensureSubscribed()
+    listeners.add(rerender)
+    return () => {
+      listeners.delete(rerender)
+    }
+  }, [rerender])
+  return follows
 }
 
 function formatTime(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 function FollowEventsContent({ instanceId }: { instanceId: string }) {
-  const entries = useFollows();
-  const editMode = useOverlayStore((s) => s.editMode);
-  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity);
-  const align = useContentAlign(instanceId);
-  const alignCls = contentAlignClass(align);
-  const lineBg = "px-1 w-fit";
-  const lineBgStyle = editMode ? undefined : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: "0.25rem" };
+  const entries = useFollows()
+  const editMode = useOverlayStore((s) => s.editMode)
+  const textBgOpacity = useOverlayStore((s) => s.textBgOpacity)
+  const align = useContentAlign(instanceId)
+  const alignCls = contentAlignClass(align)
+  const lineBg = 'px-1 w-fit'
+  const lineBgStyle = editMode
+    ? undefined
+    : { backgroundColor: `rgba(0, 0, 0, ${textBgOpacity / 100})`, borderRadius: '0.25rem' }
 
   if (entries.length === 0) {
-    if (!editMode) return null;
-    return <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>No follows yet</p>;
+    if (!editMode) return null
+    return (
+      <p className={`text-white/40 text-sm italic p-2 ${lineBg}`} style={lineBgStyle}>
+        No follows yet
+      </p>
+    )
   }
 
   return (
-    <div className={`h-full overflow-y-auto p-2 space-y-1 scrollbar-thin flex flex-col ${alignCls}`}>
+    <div
+      className={`h-full overflow-y-auto p-2 space-y-1 scrollbar-thin flex flex-col ${alignCls}`}
+    >
       {entries.map((f) => (
         <div key={f.id} className={`text-sm leading-snug ${lineBg}`} style={lineBgStyle}>
           <span className="text-white/40 text-xs mr-1">{formatTime(f.timestamp)}</span>
@@ -42,7 +52,7 @@ function FollowEventsContent({ instanceId }: { instanceId: string }) {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 export function FollowEventsWidget({ instanceId }: WidgetInstanceProps) {
@@ -52,5 +62,5 @@ export function FollowEventsWidget({ instanceId }: WidgetInstanceProps) {
         <FollowEventsContent instanceId={instanceId} />
       </div>
     </Widget>
-  );
+  )
 }

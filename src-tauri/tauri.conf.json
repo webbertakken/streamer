@@ -8,9 +8,7 @@
     "devUrl": "http://localhost:9420",
     "beforeBuildCommand": "yarn build",
     "frontendDist": "../dist",
-    "additionalWatchFolders": [
-      "."
-    ]
+    "additionalWatchFolders": ["."]
   },
   "app": {
     "windows": [
@@ -29,9 +27,7 @@
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": [
-          "**"
-        ]
+        "scope": ["**"]
       }
     }
   },

@@ -5,11 +5,13 @@ The overlay app uses a Zustand store (`src/stores/overlay.ts`) for global settin
 ## Goals / Non-goals
 
 **Goals:**
+
 - Expose stream title display toggle and per-widget styling (font, size, colour, background) via a settings panel
 - Add a global border-radius setting to the overlay store, consumed by all visible elements
 - Increase chat message TTL to 3 minutes
 
 **Non-goals:**
+
 - Per-widget border-radius overrides (global only for now)
 - Font picker with preview/live search — a simple `<select>` of common streaming fonts is sufficient
 - Custom font uploads
@@ -22,11 +24,11 @@ Extend `StreamTitleConfig` with styling fields:
 
 ```typescript
 interface StreamTitleConfig {
-  showOutsideEditMode: boolean;
-  fontFamily: string;      // default: "inherit"
-  fontSize: number;        // default: 14 (px)
-  textColour: string;      // default: "#ffffff"
-  backgroundColour: string; // default: "transparent"
+  showOutsideEditMode: boolean
+  fontFamily: string // default: "inherit"
+  fontSize: number // default: 14 (px)
+  textColour: string // default: "#ffffff"
+  backgroundColour: string // default: "transparent"
 }
 ```
 
@@ -37,6 +39,7 @@ interface StreamTitleConfig {
 ### 2. Stream title settings component
 
 Register a `settingsComponent` on the stream-title widget definition (same pattern as `custom-text` and `stream-info`). The settings popover will contain:
+
 - Checkbox: "Show outside edit mode" (maps to `showOutsideEditMode`)
 - Select: Font family (curated list of ~10 web-safe/streaming fonts)
 - Number input: Font size (px, range 10–48)
@@ -63,6 +66,7 @@ Expose via a range slider in the appearance tab of `SettingsWidget.tsx` (range 0
 ### 4. Consuming global border-radius
 
 Three consumption points:
+
 - **`Widget.tsx` content wrapper** — replace `rounded-lg` with `style={{ borderRadius }}` on the `w-full h-full overflow-hidden` div (both edit and non-edit mode)
 - **Alert widgets** — replace `rounded-xl` with `style={{ borderRadius }}` on alert containers
 - **Chat message bubbles** — replace `rounded` on `bg-black/30` message containers with `style={{ borderRadius }}`
@@ -82,6 +86,7 @@ Change `MESSAGE_TTL_MS` from `60_000` to `180_000`. Keep `SWEEP_INTERVAL_MS` at 
 Since this is a Tauri desktop app (WebView2/Chromium), the webview has full access to OS-installed fonts. No bundling or CDN loading needed.
 
 **Approach:**
+
 - Use `window.queryLocalFonts()` (Chromium Local Font Access API) to enumerate all installed system fonts
 - Extract unique font family names and cache them in component state on first settings open
 - Render as a text input with a fuzzy-match autocomplete dropdown (fzf-style scoring)
@@ -92,10 +97,10 @@ Since this is a Tauri desktop app (WebView2/Chromium), the webview has full acce
 ```typescript
 // Lazy-load system fonts on first settings open
 async function loadSystemFonts(): Promise<string[]> {
-  if (!("queryLocalFonts" in window)) return [];
-  const fonts = await window.queryLocalFonts();
-  const families = [...new Set(fonts.map((f) => f.family))];
-  return families.sort();
+  if (!('queryLocalFonts' in window)) return []
+  const fonts = await window.queryLocalFonts()
+  const families = [...new Set(fonts.map((f) => f.family))]
+  return families.sort()
 }
 ```
 
@@ -106,6 +111,7 @@ async function loadSystemFonts(): Promise<string[]> {
 ### 7. Global widget styling with per-widget overrides
 
 The overlay store provides global defaults for widget appearance:
+
 - `widgetBgColour` (string, default: `"#000000"`) — background colour
 - `widgetBgOpacity` (number 0–100, default: 30) — background opacity percentage
 - `widgetTextColour` (string, default: `"#ffffff"`) — text colour
@@ -115,6 +121,7 @@ The overlay store provides global defaults for widget appearance:
 Each `WidgetInstance` can optionally override these via per-instance fields: `bgColour`, `bgOpacity`, `textColour`, `liveBg`, `fontFamily`. When unset (`undefined`), the global value applies.
 
 **Resolution hooks** in `Widget.tsx` implement the cascade:
+
 - `useWidgetBgColour(instanceId)` → `instance.bgColour ?? global widgetBgColour`
 - `useWidgetBgOpacity(instanceId)` → `instance.bgOpacity ?? global widgetBgOpacity`
 - `useWidgetTextColour(instanceId)` → `instance.textColour ?? global widgetTextColour`
@@ -122,6 +129,7 @@ Each `WidgetInstance` can optionally override these via per-instance fields: `bg
 - Live background resolves inline: `instance.liveBg ?? widgetLiveBg`
 
 **UI layout:**
+
 - Global settings live in the Appearance tab of `SettingsWidget.tsx` under "Widget content"
 - Per-widget overrides live in a collapsed `<details>` "Advanced" section in the widget settings popover
 - Each override shows a reset button (×) when set, clearing back to global default

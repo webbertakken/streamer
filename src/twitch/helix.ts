@@ -1,124 +1,127 @@
-import { invoke } from "@tauri-apps/api/core";
-import { publish } from "../events/bus";
+import { invoke } from '@tauri-apps/api/core'
+import { publish } from '../events/bus'
 
 /**
  * Helix polling interval in ms. 10s is well within the 800 req/min budget
  * even with multiple endpoints and a couple of app restarts overlapping.
  */
-const POLL_INTERVAL = 10_000;
+const POLL_INTERVAL = 10_000
 
-let followerPollTimer: ReturnType<typeof setInterval> | null = null;
-let viewerPollTimer: ReturnType<typeof setInterval> | null = null;
+let followerPollTimer: ReturnType<typeof setInterval> | null = null
+let viewerPollTimer: ReturnType<typeof setInterval> | null = null
 
 interface FollowersResponse {
-  total: number;
+  total: number
 }
 
 /** Fetch the total follower count for a broadcaster. */
 export async function fetchFollowerCount(broadcasterId: string): Promise<number> {
-  const raw: string = await invoke("helix_get", {
+  const raw: string = await invoke('helix_get', {
     path: `/channels/followers?broadcaster_id=${broadcasterId}&first=1`,
-  });
-  const data: FollowersResponse = JSON.parse(raw);
-  return data.total;
+  })
+  const data: FollowersResponse = JSON.parse(raw)
+  return data.total
 }
 
 /** Start polling follower count every 60 seconds. Publishes events to the bus. */
 export function startFollowerPolling(broadcasterId: string): void {
-  stopFollowerPolling();
+  stopFollowerPolling()
 
   const poll = async () => {
     try {
-      const total = await fetchFollowerCount(broadcasterId);
+      const total = await fetchFollowerCount(broadcasterId)
       publish({
-        type: "follower_count_update",
+        type: 'follower_count_update',
         timestamp: Date.now(),
         data: { total },
-      });
+      })
     } catch (e) {
-      console.error("Follower count poll failed:", e);
+      console.error('Follower count poll failed:', e)
     }
-  };
+  }
 
-  poll().catch(console.error);
-  followerPollTimer = setInterval(poll, POLL_INTERVAL);
+  poll().catch(console.error)
+  followerPollTimer = setInterval(poll, POLL_INTERVAL)
 }
 
 /** Stop polling follower count. */
 export function stopFollowerPolling(): void {
   if (followerPollTimer) {
-    clearInterval(followerPollTimer);
-    followerPollTimer = null;
+    clearInterval(followerPollTimer)
+    followerPollTimer = null
   }
 }
 
 interface StreamData {
-  viewer_count: number;
-  started_at: string;
-  title: string;
-  game_name: string;
+  viewer_count: number
+  started_at: string
+  title: string
+  game_name: string
 }
 
 interface StreamsResponse {
-  data: StreamData[];
+  data: StreamData[]
 }
 
 /** Fetch stream info by user ID or login. Returns null if offline. */
-export async function fetchStreamInfo(opts: { userId?: string; login?: string }): Promise<StreamData | null> {
-  const param = opts.userId ? `user_id=${opts.userId}` : `user_login=${opts.login}`;
-  const raw: string = await invoke("helix_get", { path: `/streams?${param}` });
-  const resp: StreamsResponse = JSON.parse(raw);
-  return resp.data?.[0] ?? null;
+export async function fetchStreamInfo(options: {
+  userId?: string
+  login?: string
+}): Promise<StreamData | null> {
+  const param = options.userId ? `user_id=${options.userId}` : `user_login=${options.login}`
+  const raw: string = await invoke('helix_get', { path: `/streams?${param}` })
+  const resp: StreamsResponse = JSON.parse(raw)
+  return resp.data?.[0] ?? null
 }
 
 /** Fetch the current viewer count for a broadcaster. Returns 0 if offline. */
 export async function fetchViewerCount(broadcasterId: string): Promise<number> {
-  const info = await fetchStreamInfo({ userId: broadcasterId });
-  return info?.viewer_count ?? 0;
+  const info = await fetchStreamInfo({ userId: broadcasterId })
+  return info?.viewer_count ?? 0
 }
 
 /** Start polling viewer count every 60 seconds. Publishes events to the bus. */
 export function startViewerPolling(broadcasterId: string): void {
-  stopViewerPolling();
+  stopViewerPolling()
 
   const poll = async () => {
     try {
-      const count = await fetchViewerCount(broadcasterId);
+      const count = await fetchViewerCount(broadcasterId)
       publish({
-        type: "viewer_count_update",
+        type: 'viewer_count_update',
         timestamp: Date.now(),
         data: { count },
-      });
+      })
     } catch (e) {
-      console.error("Viewer count poll failed:", e);
+      console.error('Viewer count poll failed:', e)
     }
-  };
+  }
 
-  poll().catch(console.error);
-  viewerPollTimer = setInterval(poll, POLL_INTERVAL);
+  poll().catch(console.error)
+  viewerPollTimer = setInterval(poll, POLL_INTERVAL)
 }
 
 /** Stop polling viewer count. */
 export function stopViewerPolling(): void {
   if (viewerPollTimer) {
-    clearInterval(viewerPollTimer);
-    viewerPollTimer = null;
+    clearInterval(viewerPollTimer)
+    viewerPollTimer = null
   }
 }
 
 /** Fetch the current channel title for a broadcaster. */
 export async function fetchChannelTitle(broadcasterId: string): Promise<string> {
-  const raw: string = await invoke("helix_get", {
+  const raw: string = await invoke('helix_get', {
     path: `/channels?broadcaster_id=${broadcasterId}`,
-  });
-  const resp = JSON.parse(raw);
-  return (resp.data?.[0]?.title as string) ?? "";
+  })
+  const resp = JSON.parse(raw)
+  return (resp.data?.[0]?.title as string) ?? ''
 }
 
 /** Update the channel title for a broadcaster. */
 export async function updateChannelTitle(broadcasterId: string, title: string): Promise<void> {
-  await invoke("helix_patch", {
+  await invoke('helix_patch', {
     path: `/channels?broadcaster_id=${broadcasterId}`,
     body: JSON.stringify({ title }),
-  });
+  })
 }

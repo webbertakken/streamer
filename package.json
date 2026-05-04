@@ -4,18 +4,21 @@
   "version": "0.9.0",
   "type": "module",
   "scripts": {
-    "dev": "tauri dev",
+    "dev": "node scripts/ensure-husky.mjs && tauri dev",
     "dev:vite": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src --deny-warnings",
-    "test": "vitest run --passWithNoTests",
+    "lint": "yarn oxlint --deny-warnings --report-unused-disable-directives",
+    "test": "node scripts/ensure-husky.mjs && vitest run --passWithNoTests",
     "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
     "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
     "rust:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "setup:hooks": "node scripts/ensure-husky.mjs",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -38,9 +41,12 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-unicorn": "^64.0.0",
     "husky": "^9.1.7",
     "jsdom": "^28.0.0",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.47.0",
     "oxlint": "^1.43.0",
     "tailwindcss": "^4",
     "typescript": "~5.8.3",
@@ -49,7 +55,16 @@
   },
   "packageManager": "yarn@4.14.1",
   "lint-staged": {
-    "src/**/*.{ts,tsx}": "oxlint --deny-warnings"
+    "*.{ts,tsx}": [
+      "oxlint --fix --deny-warnings --report-unused-disable-directives",
+      "oxfmt --write"
+    ],
+    "*.{js,json,md,yml,yaml,jsonc}": [
+      "oxfmt --write"
+    ],
+    "*.rs": [
+      "rustfmt --edition 2021"
+    ]
   },
   "dependenciesMeta": {
     "esbuild": {

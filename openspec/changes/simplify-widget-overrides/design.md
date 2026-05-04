@@ -9,6 +9,7 @@ All four per-widget advanced overrides (font, bg colour, bg opacity, text colour
 ## Goals / Non-goals
 
 **Goals:**
+
 - Remove the `liveBg` toggle entirely (global and per-widget) to simplify the background visibility model
 - Make edit mode always show a solid fallback background (`bg-black/50 backdrop-blur-sm`) for easy widget selection
 - Make live mode always apply the actual `hexToRgba(effectiveBgColour, effectiveBgOpacity)` — no toggle needed
@@ -16,6 +17,7 @@ All four per-widget advanced overrides (font, bg colour, bg opacity, text colour
 - Ensure all remaining per-widget advanced overrides have reset buttons (already the case)
 
 **Non-goals:**
+
 - Changing the global BG colour/opacity defaults or the per-widget override mechanism
 - Adding new per-widget overrides
 - Changing how `previewBg` works for the global slider (it already works correctly)
@@ -32,6 +34,7 @@ Delete `liveBg?: boolean` from the `WidgetInstance` interface in `src/stores/ove
 ### 2. Remove `widgetLiveBg` and `toggleWidgetLiveBg` from `OverlayStore`
 
 Delete from the `OverlayStore` interface and the `create()` implementation:
+
 - `widgetLiveBg: boolean`
 - `toggleWidgetLiveBg: () => void`
 
@@ -76,9 +79,10 @@ style={{
 ```
 
 Remove the `widgetLiveBg` selector from the component:
+
 ```typescript
 // Remove this line
-const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg);
+const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg)
 ```
 
 **Background behaviour after this change:**
@@ -154,6 +158,7 @@ In the `WidgetSettingsPopover` component, add `onPointerDown`, `onPointerUp`, an
 ### 7. Remove "Show background in live mode" from `SettingsWidget.tsx`
 
 In the `AppearanceTab` component, remove:
+
 - The `widgetLiveBg` selector: `const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg);`
 - The `toggleWidgetLiveBg` selector: `const toggleWidgetLiveBg = useOverlayStore((s) => s.toggleWidgetLiveBg);`
 - The entire checkbox block:
@@ -185,7 +190,7 @@ Bump `_v` from `2` to `3` in `gatherState()`. Add a v3 migration block in `hydra
 // Migrate v3: remove liveBg from instances and widgetLiveBg from settings
 if ((data._v ?? 0) < 3) {
   for (const inst of instances) {
-    delete inst.liveBg;
+    delete inst.liveBg
   }
 }
 ```
@@ -193,6 +198,7 @@ if ((data._v ?? 0) < 3) {
 The `widgetLiveBg` field in `PersistedSettings.overlay` is already optional and will simply be ignored during hydration (since we remove the line that reads it). No explicit deletion needed for the settings-level field — it is not written to the store and will be dropped on the next save when `gatherState()` no longer includes it.
 
 **Migration behaviour:**
+
 - Strip `liveBg` from every persisted instance object
 - `widgetLiveBg` in persisted settings is no longer read or written — it will be dropped on the next auto-save
 
@@ -205,6 +211,7 @@ Remove `widgetLiveBg: overlay.widgetLiveBg` from the gathered overlay object.
 ### 11. Update hydration in `persistence.ts`
 
 Remove the line that applies `widgetLiveBg` to the store:
+
 ```typescript
 // Remove this line
 ...(data.overlay.widgetLiveBg !== undefined && { widgetLiveBg: data.overlay.widgetLiveBg }),
@@ -215,6 +222,7 @@ Keep `widgetLiveBg?: boolean` in the `PersistedSettings.overlay` interface as a 
 ### 12. Verify per-widget reset buttons
 
 All four remaining per-widget advanced overrides already have reset buttons:
+
 - **Font override**: reset button shown when `instance.fontFamily` is set (line 346-353)
 - **Background colour**: reset button shown when `instance.bgColour` is set (line 369-377)
 - **BG opacity**: reset button shown when `instance.bgOpacity !== undefined` (line 389-397)

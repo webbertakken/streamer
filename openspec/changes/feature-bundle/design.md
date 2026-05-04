@@ -5,6 +5,7 @@ The overlay is a Tauri v2 desktop app with a React 19 + Zustand frontend. Widget
 ## Goals / Non-goals
 
 **Goals:**
+
 - Extend the widget system with lock, opacity, and preset management
 - Add dedicated alert widgets for raids and subscriptions
 - Add configurable chat bot command responses
@@ -16,6 +17,7 @@ The overlay is a Tauri v2 desktop app with a React 19 + Zustand frontend. Widget
 - Add log folder shortcut and runtime log level control
 
 **Non-goals:**
+
 - Visual themes / global colour schemes (future enhancement)
 - Chat command overlay actions (only bot text responses for now)
 - Widget z-index / layering controls
@@ -42,6 +44,7 @@ Add `opacity: number` (default `100`, range 0–100) to `WidgetInstance`. Apply 
 Store presets in `~/.config/streamer/presets/` as individual JSON files: `{ name: string, instances: WidgetInstance[] }`. This keeps `settings.json` clean and makes import/export trivial (copy file in/out).
 
 **Operations:**
+
 - **Save**: Snapshot current `instances` array → write to `presets/<slug>.json`
 - **Load**: Read preset file → replace `instances` in overlay store → persist
 - **Delete**: Remove preset file
@@ -70,6 +73,7 @@ Sound alerts (D8) hook into the same push functions to trigger audio.
 ### D5: Settings panel — tabbed layout with per-widget inline settings
 
 **Tabbed panel** with four tabs:
+
 - **General**: file logging toggle (with log folder icon — D10), restore defaults
 - **Widgets**: widget picker (add/remove), preset manager (save/load/import/export)
 - **Twitch**: account auth, channel connection, chat commands config
@@ -88,6 +92,7 @@ Store commands in the overlay store (persisted): `commands: ChatCommand[]` where
 **Parsing**: In `irc.ts` `handleMessage()`, after `parsePRIVMSG()`, check if `text` starts with a registered command trigger. If matched, resolve template variables and call the existing `sendChatMessage()`.
 
 **Built-in commands** shipped by default (user can disable/edit):
+
 - `!uptime` → "Stream has been live for {uptime}"
 - `!game` → "Currently playing {game}"
 
@@ -98,16 +103,18 @@ Store commands in the overlay store (persisted): `commands: ChatCommand[]` where
 ### D7: Stream info widget — config-driven composable sections
 
 Config interface:
+
 ```typescript
 interface StreamInfoConfig {
-  showTitle: boolean    // default: true
-  showGame: boolean     // default: true
-  showUptime: boolean   // default: true
-  showViewers: boolean  // default: false (separate widget exists)
+  showTitle: boolean // default: true
+  showGame: boolean // default: true
+  showUptime: boolean // default: true
+  showViewers: boolean // default: false (separate widget exists)
 }
 ```
 
 **Data sources:**
+
 - Title/game: subscribe to `channel_update` events on the event bus, store latest values in component state. Initial fetch via Helix API `GET /channels` on mount.
 - Uptime: subscribe to `stream_online` / `stream_offline` events. Calculate elapsed time from `stream_online` timestamp. Poll-updated via the existing Helix streams endpoint.
 - Viewers: read from `viewer_count_update` events (already published by the existing poller).
@@ -121,12 +128,13 @@ New `src/audio/` module:
 ```typescript
 interface SoundMapping {
   eventType: ChannelEventType
-  builtIn: string | null   // e.g. "chime", "ding"
+  builtIn: string | null // e.g. "chime", "ding"
   customPath: string | null // user-provided file path
 }
 ```
 
 **Architecture:**
+
 1. `src/audio/player.ts` — `playSound(soundId: string)` using `HTMLAudioElement`
 2. `src/audio/sounds.ts` — sound configuration and mapping, reads from overlay store
 3. Event bus subscriber that listens for configured event types and triggers playback
@@ -162,10 +170,10 @@ Add `eventSubConnected: boolean` to `TwitchStore` (set by the EventSub module's 
 **Viewer count dot colour logic:**
 | IRC | EventSub | Dot colour | Animation |
 |-----|----------|------------|-----------|
-| ✓   | ✓        | Green (`bg-green-500`) | `animate-pulse` |
-| ✓   | ✗        | Amber (`bg-amber-500`) | `animate-pulse` |
-| ✗   | ✓        | Amber (`bg-amber-500`) | `animate-pulse` |
-| ✗   | ✗        | Red (`bg-red-500`) | none |
+| ✓ | ✓ | Green (`bg-green-500`) | `animate-pulse` |
+| ✓ | ✗ | Amber (`bg-amber-500`) | `animate-pulse` |
+| ✗ | ✓ | Amber (`bg-amber-500`) | `animate-pulse` |
+| ✗ | ✗ | Red (`bg-red-500`) | none |
 
 The viewer count widget reads both `connected` and `eventSubConnected` from the Twitch store and applies the appropriate Tailwind classes.
 

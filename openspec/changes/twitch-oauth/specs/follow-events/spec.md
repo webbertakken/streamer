@@ -71,6 +71,7 @@ The system SHALL poll `GET /helix/channels/followers` to retrieve the total foll
 ### Requirement: Additional EventSub subscriptions
 
 The system SHALL subscribe to all available channel events that the granted scopes permit:
+
 - `channel.raid` (no scope required)
 - `channel.update` (no scope required)
 - `stream.online` / `stream.offline` (no scope required)

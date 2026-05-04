@@ -17,6 +17,7 @@ The overlay currently connects to Twitch chat anonymously (read-only). To send c
 ## Capabilities
 
 ### New capabilities
+
 - `twitch-auth`: OAuth PKCE flow, token storage, refresh, and revocation
 - `chat-send`: Authenticated IRC connection and chat input UI
 - `follow-events`: EventSub WebSocket subscription for follow/unfollow events, displayed in a dedicated widget
@@ -24,6 +25,7 @@ The overlay currently connects to Twitch chat anonymously (read-only). To send c
 - `event-log`: Aggregated channel event feed widget with optional file logging (enabled by default)
 
 ### Modified capabilities
+
 - `project-scaffold`: The widget registry gains new widget types (follow events, chat presence); the chat widget gains an input field
 
 ## Impact
