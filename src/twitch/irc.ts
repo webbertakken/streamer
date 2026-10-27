@@ -142,14 +142,14 @@ function handleChatCommand(text: string): void {
   const { commands } = useOverlayStore.getState()
   const lowerText = text.trimStart().toLowerCase()
 
-  for (const cmd of commands) {
-    if (!cmd.enabled) continue
+  for (const command of commands) {
+    if (!command.enabled) continue
     if (
-      lowerText === cmd.trigger.toLowerCase() ||
-      lowerText.startsWith(cmd.trigger.toLowerCase() + ' ')
+      lowerText === command.trigger.toLowerCase() ||
+      lowerText.startsWith(command.trigger.toLowerCase() + ' ')
     ) {
       lastCommandTime = now
-      const response = resolveTemplateVariables(cmd.response)
+      const response = resolveTemplateVariables(command.response)
       sendChatMessage(response)
       return
     }
