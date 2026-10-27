@@ -383,34 +383,38 @@ function CommandsSection() {
   }
 
   function toggleCommand(index: number) {
-    setCommands(commands.map((cmd, i) => (i === index ? { ...cmd, enabled: !cmd.enabled } : cmd)))
+    setCommands(
+      commands.map((command, i) =>
+        i === index ? { ...command, enabled: !command.enabled } : command,
+      ),
+    )
   }
 
   function updateCommand(index: number, partial: Partial<ChatCommand>) {
-    setCommands(commands.map((cmd, i) => (i === index ? { ...cmd, ...partial } : cmd)))
+    setCommands(commands.map((command, i) => (i === index ? { ...command, ...partial } : command)))
   }
 
   return (
     <div className="space-y-2">
       <h3 className="text-white/70 text-xs font-medium">Chat commands</h3>
       <div className="space-y-1.5 max-h-32 overflow-y-auto">
-        {commands.map((cmd, i) => (
+        {commands.map((command, i) => (
           <div key={i} className="flex items-center gap-1 text-xs">
             <input
               type="checkbox"
-              checked={cmd.enabled}
+              checked={command.enabled}
               onChange={() => toggleCommand(i)}
               className="accent-blue-500 shrink-0"
             />
             <input
               type="text"
-              value={cmd.trigger}
+              value={command.trigger}
               onChange={(e) => updateCommand(i, { trigger: e.target.value })}
               className="w-16 bg-white/10 text-white rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
             />
             <input
               type="text"
-              value={cmd.response}
+              value={command.response}
               onChange={(e) => updateCommand(i, { response: e.target.value })}
               className="flex-1 bg-white/10 text-white rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
             />
