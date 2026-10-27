@@ -50,7 +50,7 @@
     "oxlint": "^1.43.0",
     "tailwindcss": "^4",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4",
+    "vite": "^8.0.0",
     "vitest": "^4.0.18"
   },
   "packageManager": "yarn@4.14.1",
