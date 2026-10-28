@@ -21,6 +21,7 @@
     "**/.yarn/**",
     "src-tauri/target/**",
     "src-tauri/gen/**",
-    "src-tauri/**/*.toml"
+    "src-tauri/**/*.toml",
+    "CHANGELOG.md"
   ]
 }
