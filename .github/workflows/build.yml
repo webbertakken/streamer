@@ -102,15 +102,24 @@ jobs:
         with:
           args: ${{ matrix.args }}
 
+      # Release-please creates the tag by publishing its release, changelog included.
+      # Passing its id uploads the assets without overwriting that name and body.
+      - name: Resolve release for tag
+        id: release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" --jq .id)"
+          echo "Uploading assets to release ${release_id} (${GITHUB_REF_NAME})"
+          echo "id=${release_id}" >> "$GITHUB_OUTPUT"
+
       - name: Build and release (tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: v__VERSION__
-          releaseBody: 'See the assets to download and install this version.'
-          releaseDraft: false
-          prerelease: false
+          releaseId: ${{ steps.release.outputs.id }}
           args: ${{ matrix.args }}
