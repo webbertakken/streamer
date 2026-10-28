@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.9.1](https://github.com/webbertakken/streamer/compare/v0.9.0...v0.9.1) (2026-10-28)
+
+
+### Bug fixes
+
+* **deps:** bump tar to 7.5.22 ([#36](https://github.com/webbertakken/streamer/issues/36)) ([2c893f0](https://github.com/webbertakken/streamer/commit/2c893f0e8479ec3e7f5f16fb94468edccd75091d))
+* keep release PRs formatted ([#48](https://github.com/webbertakken/streamer/issues/48)) ([6b9e946](https://github.com/webbertakken/streamer/commit/6b9e9466ca8a2d88eed834c2c0ba732dfaa63196))
+
+
+### Maintenance
+
+* **deps:** update dependency @testing-library/jest-dom to v7 ([#37](https://github.com/webbertakken/streamer/issues/37)) ([3b25068](https://github.com/webbertakken/streamer/commit/3b25068c4a077b8b20c2fae30e769ccfdb9f9a72))
+* **deps:** update dependency @vitejs/plugin-react to v6 ([#38](https://github.com/webbertakken/streamer/issues/38)) ([01b45a4](https://github.com/webbertakken/streamer/commit/01b45a4a0405a5d89b345a8314e0adf490d32044))
+* **deps:** update dependency eslint-plugin-unicorn to v79 ([#39](https://github.com/webbertakken/streamer/issues/39)) ([baed3ad](https://github.com/webbertakken/streamer/commit/baed3ad532aa2ccdc4da5601febc9098e87923c6))
+* **deps:** update dependency jsdom to v30 ([#40](https://github.com/webbertakken/streamer/issues/40)) ([9b38d92](https://github.com/webbertakken/streamer/commit/9b38d92456b22fdfa5b458fc0c04e3c422d7fd21))
+* **deps:** update dependency lint-staged to v17 ([#41](https://github.com/webbertakken/streamer/issues/41)) ([0539c4e](https://github.com/webbertakken/streamer/commit/0539c4ede8cb7339ddce00ac6e4254763f9eb57b))
+* **deps:** update dependency typescript to v7 ([#42](https://github.com/webbertakken/streamer/issues/42)) ([2707d76](https://github.com/webbertakken/streamer/commit/2707d7607b1cd464ca4ec4b69a6eea2f6bd4d4f6))
+* **deps:** update dependency vite to v8 ([#43](https://github.com/webbertakken/streamer/issues/43)) ([c7e2d5a](https://github.com/webbertakken/streamer/commit/c7e2d5a6accfc7e63df1f636cb2526d25e8ded49))
+* **deps:** update dependency vitest to v5 ([#44](https://github.com/webbertakken/streamer/issues/44)) ([20bdf63](https://github.com/webbertakken/streamer/commit/20bdf6340b6c1cd850fe833eb2a749186962e768))
+* **deps:** update github actions (major) ([#45](https://github.com/webbertakken/streamer/issues/45)) ([b91e216](https://github.com/webbertakken/streamer/commit/b91e2164a084f553f6cfc326a321fc9f53e6bfea))
+* **deps:** update node.js to v24 ([#46](https://github.com/webbertakken/streamer/issues/46)) ([21d4782](https://github.com/webbertakken/streamer/commit/21d4782fc738d1953b7e755f24d903ec1223b9a1))
+* **deps:** update rust crate dirs to v7 ([#47](https://github.com/webbertakken/streamer/issues/47)) ([256aa5c](https://github.com/webbertakken/streamer/commit/256aa5cff57670cec5beb9dae4a0c93ca5531f7c))
+* enable Renovate ([#35](https://github.com/webbertakken/streamer/issues/35)) ([6a99372](https://github.com/webbertakken/streamer/commit/6a99372af8d108b36fa917d771c11813aab023c3))
+* migrate to mise + bump yarn to 4.14.1 + cache pattern ([#31](https://github.com/webbertakken/streamer/issues/31)) ([4c2789e](https://github.com/webbertakken/streamer/commit/4c2789eaec563ca17d94aeb04ab42caa6d236175))
+* quality-tightening (oxfmt + oxlint + husky) ([#33](https://github.com/webbertakken/streamer/issues/33)) ([b333b71](https://github.com/webbertakken/streamer/commit/b333b71fbaa98bfcb6c92b6a3702c7df66cf1f2d))
+
 ## [0.9.0](https://github.com/webbertakken/streamer/compare/v0.8.0...v0.9.0) (2026-02-20)
 
 ### Features
