@@ -21,11 +21,6 @@
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {
-          "type": "json",
-          "path": "src-tauri/tauri.conf.json",
-          "jsonpath": "$.version"
-        },
-        {
           "type": "generic",
           "path": "src-tauri/Cargo.toml",
           "regex": "^version = \"(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\""
