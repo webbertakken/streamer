@@ -66,6 +66,9 @@
       "rustfmt --edition 2021"
     ]
   },
+  "resolutions": {
+    "tinypool": "^2.1.2"
+  },
   "dependenciesMeta": {
     "esbuild": {
       "built": true
