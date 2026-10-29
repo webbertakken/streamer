@@ -104,6 +104,8 @@ export function StreamTitleSettings({ instanceId }: { instanceId: string }) {
                 onClick={() => update({ alignH: h, alignV: v })}
                 className={`w-4 h-4 rounded-sm transition-colors ${config.alignH === h && config.alignV === v ? 'bg-blue-500' : 'bg-white/15 hover:bg-white/30'}`}
                 title={`${v}-${h}`}
+                aria-label={`Align ${v}-${h}`}
+                aria-pressed={config.alignH === h && config.alignV === v}
               />
             )),
           )}

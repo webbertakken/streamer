@@ -363,6 +363,8 @@ function WidgetSettingsPopover({
                     }
                     className={`w-4 h-4 rounded-sm transition-colors ${active ? (isAuto ? 'ring-1 ring-inset ring-blue-500' : 'bg-blue-500') : 'bg-white/15 hover:bg-white/30'}`}
                     title={isAuto && active ? `${a} (auto)` : a}
+                    aria-label={isAuto && active ? `Align ${a} (auto)` : `Align ${a}`}
+                    aria-pressed={active}
                   />
                 )
               })}

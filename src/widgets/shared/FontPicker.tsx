@@ -1,5 +1,5 @@
 import { Fzf } from 'fzf'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 
 /** Lazy-load system font family names via the Local Font Access API. */
 let fontCache: string[] | null = null
@@ -21,7 +21,6 @@ async function loadSystemFonts(): Promise<string[]> {
 export function FontPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [query, setQuery] = useState(value === 'inherit' ? '' : value)
   const [fonts, setFonts] = useState<string[]>([])
-  const [results, setResults] = useState<string[]>([])
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -38,14 +37,9 @@ export function FontPicker({ value, onChange }: { value: string; onChange: (v: s
       .catch(() => {})
   }
 
-  useEffect(() => {
-    if (!query.trim() || fonts.length === 0) {
-      setResults(fonts.slice(0, 12))
-      return
-    }
-    const fzf = new Fzf(fonts, { limit: 12 })
-    setResults(fzf.find(query).map((r) => r.item))
-    setHighlighted(0)
+  const results = useMemo(() => {
+    if (!query.trim() || fonts.length === 0) return fonts.slice(0, 12)
+    return new Fzf(fonts, { limit: 12 }).find(query).map((r) => r.item)
   }, [query, fonts])
 
   useEffect(() => {
@@ -84,6 +78,7 @@ export function FontPicker({ value, onChange }: { value: string; onChange: (v: s
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
+          setHighlighted(0)
           setOpen(true)
           if (!e.target.value) onChange('inherit')
         }}

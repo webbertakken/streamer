@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { subscribe } from '../../events/bus'
 import { useOverlayStore } from '../../stores/overlay'
 import type { WidgetInstanceProps } from '../registry'
@@ -57,22 +57,17 @@ function StreamInfoContent({ instanceId }: { instanceId: string }) {
   }, [])
 
   // Update uptime display every second
-  const streamStartedAtRef = useRef(streamStartedAt)
-  const isLiveRef = useRef(isLive)
-  streamStartedAtRef.current = streamStartedAt
-  isLiveRef.current = isLive
-
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isLiveRef.current && streamStartedAtRef.current) {
-        const elapsed = Date.now() - streamStartedAtRef.current.getTime()
+      if (isLive && streamStartedAt) {
+        const elapsed = Date.now() - streamStartedAt.getTime()
         setUptimeStr(formatUptime(elapsed))
       } else {
         setUptimeStr('Offline')
       }
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [isLive, streamStartedAt])
 
   if (!config) return null
 

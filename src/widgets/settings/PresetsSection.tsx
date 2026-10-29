@@ -42,17 +42,16 @@ export function PresetsSection() {
   const [error, setError] = useState<string | null>(null)
 
   /** Fetch the list of saved presets from the Rust backend. */
-  const refreshPresets = useCallback(async () => {
-    try {
-      const list = await invoke<PresetInfo[]>('list_presets')
-      setPresets(list)
-    } catch (e) {
-      console.error('Failed to list presets:', e)
-    }
-  }, [])
+  const refreshPresets = useCallback(
+    () =>
+      invoke<PresetInfo[]>('list_presets')
+        .then(setPresets)
+        .catch((e) => console.error('Failed to list presets:', e)),
+    [],
+  )
 
   useEffect(() => {
-    refreshPresets().catch(console.error)
+    void refreshPresets()
   }, [refreshPresets])
 
   /** Save the current widget layout as a named preset. */
