@@ -258,6 +258,7 @@ function GeneralTab() {
           onClick={handleOpenLogFolder}
           className="text-white/50 hover:text-white/80 transition-colors"
           title="Open log folder"
+          aria-label="Open log folder"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -291,19 +292,25 @@ function MonitorSelection() {
   const selectedMonitors = useOverlayStore((s) => s.selectedMonitors)
   const setSelectedMonitors = useOverlayStore((s) => s.setSelectedMonitors)
   const [monitors, setMonitors] = useState<MonitorInfo[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(() => {
+  const loadMonitors = useCallback(
+    () =>
+      invoke<MonitorInfo[]>('list_monitors')
+        .then(setMonitors)
+        .catch(console.error)
+        .finally(() => setLoading(false)),
+    [],
+  )
+
+  function refresh() {
     setLoading(true)
-    invoke<MonitorInfo[]>('list_monitors')
-      .then(setMonitors)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+    void loadMonitors()
+  }
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    void loadMonitors()
+  }, [loadMonitors])
 
   async function handleToggle(id: string, checked: boolean) {
     const next = checked ? [...selectedMonitors, id] : selectedMonitors.filter((m) => m !== id)
@@ -556,6 +563,7 @@ function SoundMappingRow({ eventType }: { eventType: string }) {
         onClick={handlePreview}
         className="text-white/50 hover:text-white/80 transition-colors shrink-0"
         title="Preview sound"
+        aria-label="Preview sound"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -708,6 +716,8 @@ function AppearanceTab() {
                 onClick={() => setPanelAlign(h, v)}
                 className={`w-4 h-4 rounded-sm transition-colors ${panelAlignH === h && panelAlignV === v ? 'bg-blue-500' : 'bg-white/15 hover:bg-white/30'}`}
                 title={`${v}-${h}`}
+                aria-label={`Position ${v}-${h}`}
+                aria-pressed={panelAlignH === h && panelAlignV === v}
               />
             )),
           )}

@@ -95,7 +95,7 @@ function ChatContent({ instanceId }: { instanceId: string }) {
   const align = useContentAlign(instanceId)
   const alignCls = contentAlignClass(align)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(Date.now)
 
   const config: ChatConfig = {
     ...DEFAULT_CHAT_CONFIG,

@@ -67,12 +67,7 @@ function useHoverReveal(
   const hoverStartRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (editMode) {
-      setRevealed(true)
-      return
-    }
-
-    setRevealed(false)
+    if (editMode) return
 
     const interval = setInterval(async () => {
       if (!containerRef.current) return
@@ -103,10 +98,11 @@ function useHoverReveal(
     return () => {
       clearInterval(interval)
       hoverStartRef.current = null
+      setRevealed(false)
     }
   }, [editMode, containerRef])
 
-  return revealed
+  return editMode || revealed
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +170,7 @@ function SuggestionBoxContent({ instanceId }: { instanceId: string }) {
   const alignCls = contentAlignClass(align)
   const scrollRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(Date.now)
 
   const config: SuggestionBoxConfig = {
     ...DEFAULT_CONFIG,
@@ -289,7 +285,8 @@ export function SuggestionBoxSettings({ instanceId }: { instanceId: string }) {
   }
 
   const [rewards, setRewards] = useState<Reward[]>([])
-  const [loadingRewards, setLoadingRewards] = useState(false)
+  const [rewardsLoadedFor, setRewardsLoadedFor] = useState<string | null>(null)
+  const loadingRewards = authenticated && !!userId && rewardsLoadedFor !== userId
 
   function update(partial: Partial<SuggestionBoxConfig>) {
     updateInstance(instanceId, { config: { ...config, ...partial } })
@@ -299,19 +296,24 @@ export function SuggestionBoxSettings({ instanceId }: { instanceId: string }) {
   useEffect(() => {
     if (!authenticated || !userId) return
 
-    setLoadingRewards(true)
+    let stale = false
     invoke<string>('helix_get', {
       path: `/channel_points/custom_rewards?broadcaster_id=${userId}`,
     })
       .then((raw) => {
         const resp = JSON.parse(raw) as { data?: Reward[] }
-        setRewards(resp.data ?? [])
+        if (!stale) setRewards(resp.data ?? [])
       })
       .catch((err) => {
         console.error('Failed to fetch custom rewards:', err)
-        setRewards([])
+        if (!stale) setRewards([])
       })
-      .finally(() => setLoadingRewards(false))
+      .finally(() => {
+        if (!stale) setRewardsLoadedFor(userId)
+      })
+    return () => {
+      stale = true
+    }
   }, [authenticated, userId])
 
   return (
