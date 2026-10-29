@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.2](https://github.com/webbertakken/streamer/compare/v0.9.1...v0.9.2) (2026-10-29)
+
+
+### Bug fixes
+
+* **deps:** resolve tinypool to patched ^2.1.2 ([#51](https://github.com/webbertakken/streamer/issues/51)) ([918bb4b](https://github.com/webbertakken/streamer/commit/918bb4b8eb9e095cd54a2a14751b644fa530154d))
+
+
+### Maintenance
+
+* **deps:** lock file maintenance ([#49](https://github.com/webbertakken/streamer/issues/49)) ([4fa0c0a](https://github.com/webbertakken/streamer/commit/4fa0c0a7c70b196df8d2c6ab1c2f3382dcf5a3af))
+* **deps:** lock file maintenance ([#52](https://github.com/webbertakken/streamer/issues/52)) ([af91df8](https://github.com/webbertakken/streamer/commit/af91df8712c6cd75b881806c9a4b42bbee7c3acc))
+
 ## [0.9.1](https://github.com/webbertakken/streamer/compare/v0.9.0...v0.9.1) (2026-10-28)
 
 
