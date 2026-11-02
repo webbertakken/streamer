@@ -86,11 +86,12 @@ const widgetLiveBg = useOverlayStore((s) => s.widgetLiveBg)
 ```
 
 **Background behaviour after this change:**
-| State | Background |
-|---|---|
-| Edit mode, not previewing | `bg-black/50 backdrop-blur-sm` (solid fallback) |
+
+| State                                  | Background                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| Edit mode, not previewing              | `bg-black/50 backdrop-blur-sm` (solid fallback)                                |
 | Edit mode, previewing (slider dragged) | `hexToRgba(effectiveBgColour, effectiveBgOpacity)` (actual configured colours) |
-| Live mode (not in edit mode) | `hexToRgba(effectiveBgColour, effectiveBgOpacity)` (actual configured colours) |
+| Live mode (not in edit mode)           | `hexToRgba(effectiveBgColour, effectiveBgOpacity)` (actual configured colours) |
 
 **Rationale:** This is the simplest possible model. Edit mode shows a consistent, visible background for widget manipulation. Live mode always shows what the user configured. The `previewBg` escape hatch lets users see the actual result while adjusting sliders.
 
