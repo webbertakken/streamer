@@ -49,7 +49,12 @@ jobs:
           node-version: ${{ steps.node.outputs.version }}
 
       - name: Install package manager (from package.json)
+        shell: bash
         run: |
+          if npm ls --global yarn > /dev/null 2>&1; then
+            echo 'Removing the runner-provided yarn classic so corepack can own the yarn shim'
+            npm uninstall --global yarn
+          fi
           npm install --global corepack
           corepack enable
           corepack install
