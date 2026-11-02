@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.2](https://github.com/webbertakken/streamer/compare/v0.9.1...v0.9.2) (2026-11-02)
+
+
+### Bug fixes
+
+* **deps:** resolve minimatch to ^11.0.3 ([#57](https://github.com/webbertakken/streamer/issues/57)) ([907491d](https://github.com/webbertakken/streamer/commit/907491d72dc00a76c598dc66e8e7a24481957b58))
+* **deps:** resolve tinypool to patched ^2.1.2 ([#51](https://github.com/webbertakken/streamer/issues/51)) ([918bb4b](https://github.com/webbertakken/streamer/commit/918bb4b8eb9e095cd54a2a14751b644fa530154d))
+
+
+### Maintenance
+
+* **deps:** lock file maintenance ([#49](https://github.com/webbertakken/streamer/issues/49)) ([4fa0c0a](https://github.com/webbertakken/streamer/commit/4fa0c0a7c70b196df8d2c6ab1c2f3382dcf5a3af))
+* **deps:** lock file maintenance ([#52](https://github.com/webbertakken/streamer/issues/52)) ([af91df8](https://github.com/webbertakken/streamer/commit/af91df8712c6cd75b881806c9a4b42bbee7c3acc))
+* **deps:** lock file maintenance ([#56](https://github.com/webbertakken/streamer/issues/56)) ([f041ab0](https://github.com/webbertakken/streamer/commit/f041ab05024851074397ca116130f7c6ef257e2a))
+* **deps:** pin dtolnay/rust-toolchain action to b725eda ([#53](https://github.com/webbertakken/streamer/issues/53)) ([d698996](https://github.com/webbertakken/streamer/commit/d698996e95c5adaff36871bc690c0fbe02baa82c))
+* **deps:** update all non-major dependencies ([#54](https://github.com/webbertakken/streamer/issues/54)) ([89234c3](https://github.com/webbertakken/streamer/commit/89234c376815bb877983f83a3e95cd4d05d1cab9))
+* **deps:** update node.js to v26 ([#55](https://github.com/webbertakken/streamer/issues/55)) ([b136237](https://github.com/webbertakken/streamer/commit/b136237654a690267d8d540af4bcf48d91891fee))
+
 ## [0.9.1](https://github.com/webbertakken/streamer/compare/v0.9.0...v0.9.1) (2026-10-28)
 
 
