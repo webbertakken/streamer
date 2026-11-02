@@ -43,20 +43,19 @@ jobs:
         run: echo "version=$(grep -E '^node\s*=' mise.toml | sed -E 's/.*"([^"]+)".*/\1/')" >>
           "$GITHUB_OUTPUT"
 
-      - name: Install package manager (from package.json)
-        if: runner.os != 'Windows'
-        run: |
-          corepack enable
-          corepack install
-
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ steps.node.outputs.version }}
 
-      - name: Install package manager (Windows)
-        if: runner.os == 'Windows'
+      - name: Install package manager (from package.json)
+        shell: bash
         run: |
+          if npm ls --global yarn > /dev/null 2>&1; then
+            echo 'Removing the runner-provided yarn classic so corepack can own the yarn shim'
+            npm uninstall --global yarn
+          fi
+          npm install --global corepack
           corepack enable
           corepack install
 
