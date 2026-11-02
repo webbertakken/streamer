@@ -67,7 +67,9 @@
     ]
   },
   "resolutions": {
-    "tinypool": "^2.1.2"
+    "tinypool": "^2.1.2",
+    "minimatch@npm:^10.2.4": "npm:^11.0.3",
+    "minimatch@npm:^10.2.6": "npm:^11.0.3"
   },
   "dependenciesMeta": {
     "esbuild": {
