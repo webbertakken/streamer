@@ -168,12 +168,13 @@ Add a folder icon button next to the file logging toggle in the General settings
 Add `eventSubConnected: boolean` to `TwitchStore` (set by the EventSub module's connect/disconnect handlers, mirroring how IRC already sets `connected`).
 
 **Viewer count dot colour logic:**
-| IRC | EventSub | Dot colour | Animation |
-|-----|----------|------------|-----------|
-| ✓ | ✓ | Green (`bg-green-500`) | `animate-pulse` |
-| ✓ | ✗ | Amber (`bg-amber-500`) | `animate-pulse` |
-| ✗ | ✓ | Amber (`bg-amber-500`) | `animate-pulse` |
-| ✗ | ✗ | Red (`bg-red-500`) | none |
+
+| IRC | EventSub | Dot colour             | Animation       |
+| --- | -------- | ---------------------- | --------------- |
+| ✓   | ✓        | Green (`bg-green-500`) | `animate-pulse` |
+| ✓   | ✗        | Amber (`bg-amber-500`) | `animate-pulse` |
+| ✗   | ✓        | Amber (`bg-amber-500`) | `animate-pulse` |
+| ✗   | ✗        | Red (`bg-red-500`)     | none            |
 
 The viewer count widget reads both `connected` and `eventSubConnected` from the Twitch store and applies the appropriate Tailwind classes.
 
