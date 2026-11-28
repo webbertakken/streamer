@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.3](https://github.com/webbertakken/streamer/compare/v0.9.2...v0.9.3) (2026-11-23)
+
+
+### Maintenance
+
+* **deps:** lock file maintenance ([#63](https://github.com/webbertakken/streamer/issues/63)) ([c38bdb9](https://github.com/webbertakken/streamer/commit/c38bdb9995a93f099b13b669af8fb4928183ade9))
+* **deps:** lock file maintenance ([#68](https://github.com/webbertakken/streamer/issues/68)) ([c5cde87](https://github.com/webbertakken/streamer/commit/c5cde878b4855e2a93543ae7722f413c56ac1432))
+* **deps:** lock file maintenance ([#69](https://github.com/webbertakken/streamer/issues/69)) ([c280003](https://github.com/webbertakken/streamer/commit/c280003bc39b7f593755750101a6418d431b0687))
+* **deps:** update all non-major dependencies ([#62](https://github.com/webbertakken/streamer/issues/62)) ([501bf1f](https://github.com/webbertakken/streamer/commit/501bf1f55c1affe094b1ae60a832e44f89508153))
+* **deps:** update all non-major dependencies ([#67](https://github.com/webbertakken/streamer/issues/67)) ([57c36bc](https://github.com/webbertakken/streamer/commit/57c36bccca21d95c49ea2ac60d887af5cb9fae39))
+* **deps:** update dependency @testing-library/jest-dom to v8 ([#66](https://github.com/webbertakken/streamer/issues/66)) ([750d7ce](https://github.com/webbertakken/streamer/commit/750d7ceae4b325c32704e6cab6684d1d2aa185a3))
+* **deps:** update dependency eslint-plugin-unicorn to v80 ([#65](https://github.com/webbertakken/streamer/issues/65)) ([4b542b0](https://github.com/webbertakken/streamer/commit/4b542b02c3f8a628d4967d489d9a616b3a61b2f6))
+
 ## [0.9.2](https://github.com/webbertakken/streamer/compare/v0.9.1...v0.9.2) (2026-11-11)
 
 
